@@ -41,12 +41,6 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.i(TAG, "onMessageReceived");
 
-        /*Map<String, String> data = remoteMessage.getData();
-        String title = data.get("title");
-        String message = data.get("content");
-
-        Log.i(TAG, "onMessageReceived " + title + "_________" + message);*/
-
         Log.d("FCMMSG", remoteMessage.getData().toString());
 
         Bundle bundle = new Bundle();
