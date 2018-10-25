@@ -1,0 +1,12 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <style name="CustomProgressDialog">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowTitleStyle">@null</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+</resources>

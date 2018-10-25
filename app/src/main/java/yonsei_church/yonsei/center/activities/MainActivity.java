@@ -33,6 +33,7 @@ import java.lang.ref.WeakReference;
 
 import yonsei_church.yonsei.center.R;
 import yonsei_church.yonsei.center.app.MarketVersionChecker;
+import yonsei_church.yonsei.center.media.MediaPlayerService;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -56,9 +57,14 @@ public class MainActivity extends AppCompatActivity {
         // 인터넷 연결확인
         checkInternetConnection();
 
-        errorVeiw = (TextView) findViewById(R.id.net_error_view);
+        if (getIntent().getBooleanExtra("EXIT", false)) {
+            finish();
+            stopService(new Intent(this, MediaPlayerService.class));
+            return;
+        }
+        //errorVeiw = (TextView) findViewById(R.id.net_error_view);
 
-        mWebView = (WebView) findViewById(R.id.activity_main_webview);
+        /*mWebView = (WebView) findViewById(R.id.activity_main_webview);
         WebSettings webSettings = mWebView.getSettings();
 
         webSettings.setJavaScriptEnabled(true);
@@ -213,13 +219,13 @@ public class MainActivity extends AppCompatActivity {
 
 
         });
-
+*/
         BackgroundThread thread = new BackgroundThread();
         thread.setDaemon(true);
         thread.start();
 
-        mWebView.setWebChromeClient(new FullscreenableChromeClient(MainActivity.this));
-        mWebView.loadUrl("http://app.dnsnet.co.kr/main/main.html");  //http://www.ybstv.com
+        //mWebView.setWebChromeClient(new FullscreenableChromeClient(MainActivity.this));
+        //mWebView.loadUrl("http://app.dnsnet.co.kr/main/main.html");  //http://www.ybstv.com
 
         // FCM 토큰 업데이트
         try {
@@ -230,11 +236,15 @@ public class MainActivity extends AppCompatActivity {
             Log.d("FCM_TOKEN", "ERROR");
            ex.printStackTrace();
         }
+
+        Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
+        intent.putExtra("URL", "http://app.dnsnet.co.kr/main/main.html");
+        startActivity(intent);
     }
 
 
 
-    @Override
+    /*@Override
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -246,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onKeyDown(keyCode, event);
 
-    }
+    }*/
 
     public boolean checkInternetConnection() {
         ConnectivityManager cm =

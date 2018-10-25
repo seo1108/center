@@ -14,7 +14,7 @@ buildscript {
 }
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
     defaultConfig {
         applicationId "yonsei_church.yonsei.center"
         minSdkVersion 17
@@ -30,6 +30,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 allprojects {
@@ -41,7 +45,8 @@ allprojects {
 }
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:26.1.0'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'org.jsoup:jsoup:1.8.3'
     implementation 'com.google.firebase:firebase-core:12.0.1'
     implementation 'com.google.firebase:firebase-messaging:12.0.1'
@@ -49,6 +54,10 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.9.0'
+    implementation 'com.google.android.exoplayer:exoplayer-dash:2.9.0'
+    implementation 'com.google.android.exoplayer:exoplayer-ui:2.9.0'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
 }
 
 apply plugin: 'com.google.gms.google-services'

@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
 
     <application
         android:name="yonsei_church.yonsei.center.app.GlobalApplication"
@@ -32,6 +33,19 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".activities.WebViewActivity"
+            android:screenOrientation="portrait"></activity>
+
+        <activity
+            android:name=".activities.PlayerActivity"
+            android:screenOrientation="portrait"></activity>
+
+        <receiver android:name=".activities.PlayerActivity$MediaButtonNotification">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
 
         <service android:name="yonsei_church.yonsei.center.fcm.FirebaseMessagingService">
             <intent-filter>
@@ -44,6 +58,14 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
+
+        <service android:name="yonsei_church.yonsei.center.media.MediaPlayerService">
+        </service>
+
+        <receiver
+            android:name="yonsei_church.yonsei.center.receiver.NotificationDismissedReceiver"
+            android:exported="false" >
+        </receiver>
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
