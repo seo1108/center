@@ -89,10 +89,11 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
             mController.getTransportControls().fastForward();
         } else if( action.equalsIgnoreCase( ACTION_REWIND ) ) {
             mController.getTransportControls().rewind();
-        } else if( action.equalsIgnoreCase( ACTION_PREVIOUS ) ) {
+       /* } else if( action.equalsIgnoreCase( ACTION_PREVIOUS ) ) {
             mController.getTransportControls().skipToPrevious();
         } else if( action.equalsIgnoreCase( ACTION_NEXT ) ) {
             mController.getTransportControls().skipToNext();
+        } */
         } else if( action.equalsIgnoreCase( ACTION_STOP ) ) {
             mController.getTransportControls().stop();
         }
@@ -141,13 +142,15 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         }*/
 
 
-        builder.addAction( generateAction( android.R.drawable.ic_media_previous, "Previous", ACTION_PREVIOUS ) );
+        //builder.addAction( generateAction( android.R.drawable.ic_media_previous, "Previous", ACTION_PREVIOUS ) );
         builder.addAction( generateAction( android.R.drawable.ic_media_rew, "Rewind", ACTION_REWIND ) );
         builder.addAction( action );
         builder.addAction( generateAction( android.R.drawable.ic_media_ff, "Fast Foward", ACTION_FAST_FORWARD ) );
-        builder.addAction( generateAction( android.R.drawable.ic_media_next, "Next", ACTION_NEXT ) );
+        //builder.addAction( generateAction( android.R.drawable.ic_media_next, "Next", ACTION_NEXT ) );
+        //int[] actionsViewIndexs = new int[]{1,2,3};
         int[] actionsViewIndexs = new int[]{1,2,3,4,5};
-        builder.setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(actionsViewIndexs));
+
+        builder.setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle());
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(0, builder.build());
 
