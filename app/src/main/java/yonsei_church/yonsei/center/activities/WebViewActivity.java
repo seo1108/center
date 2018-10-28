@@ -1,8 +1,10 @@
 package yonsei_church.yonsei.center.activities;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Notification;
-import android.app.PendingIntent;
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -12,7 +14,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
@@ -22,8 +23,15 @@ import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
+
+import java.util.ArrayList;
+
 import yonsei_church.yonsei.center.R;
+import yonsei_church.yonsei.center.app.AppConst;
 import yonsei_church.yonsei.center.app.GlobalApplication;
+import yonsei_church.yonsei.center.media.DownloadContentService;
 import yonsei_church.yonsei.center.media.MediaPlayerService;
 import yonsei_church.yonsei.center.widget.WaitingDialog;
 
@@ -34,10 +42,14 @@ public class WebViewActivity extends AppCompatActivity {
     private String mUrl;
     boolean doubleBackToExitPressedOnce = false;
     MediaPlayer mediaPlayer;
+    Activity mActivity;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mActivity = this;
         setContentView(R.layout.activity_webview);
 
         // Google Analytics
@@ -96,6 +108,10 @@ public class WebViewActivity extends AppCompatActivity {
         mWebView = findViewById(R.id.webview);
         mWebView.setWebViewClient(new WebClient()); // 응용프로그램에서 직접 url 처리
         //mWebView.setWebChromeClient(new FullscreenableChromeClient(WebViewActivity.this));
+
+
+
+
 
         WebSettings settings = mWebView.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -162,6 +178,32 @@ public class WebViewActivity extends AppCompatActivity {
 
         mWebView.loadUrl(mUrl);
 
+
+        findViewById(R.id.btn_download).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //checkStoragePermissionForDonwload();
+
+                /*Intent intent = new Intent( getApplicationContext(), DownloadContentService.class );
+                intent.putExtra("url","https://www.radiantmediaplayer.com/media/bbb-360p.mp4");
+                intent.putExtra("title","기도2.mp4");
+                startService(intent);*/
+                Intent intent = new Intent( getApplicationContext(), DownloadListActivity.class );
+                startActivity(intent);
+            }
+        });
+        findViewById(R.id.btn_play).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                intent.setAction( MediaPlayerService.ACTION_PLAY );
+                intent.putExtra("streamLink","https://s3-ap-northeast-2.amazonaws.com/webaudio.ybstv.com/mp3/yn20181021-322.mp3");
+                intent.putExtra("position",0);
+                AppConst.MEDIA_CUURECT_POSITION = 0;
+                startService(intent);
+            }
+        });
+
     }
 
     class WebClient extends WebViewClient {
@@ -184,11 +226,15 @@ public class WebViewActivity extends AppCompatActivity {
             Log.d("onPageFinished", url);
             WaitingDialog.cancelWaitingDialog();
 
-            Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+            /*Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
             intent.setAction( MediaPlayerService.ACTION_PLAY );
-            intent.putExtra("StreamLink","https://s3-ap-northeast-2.amazonaws.com/webaudio.ybstv.com/mp3/yn20181021-322.mp3");
-            startService(intent);
+            intent.putExtra("streamLink","https://s3-ap-northeast-2.amazonaws.com/webaudio.ybstv.com/mp3/yn20181021-322.mp3");
+            intent.putExtra("position",0);
+            AppConst.MEDIA_CUURECT_POSITION = 0;
+            startService(intent);*/
 
+
+            //checkStoragePermissionForDonwload();
 /*            Intent intent = new Intent(WebViewActivity.this, PlayerActivity.class );
             startActivity(intent);*/
         }
@@ -221,4 +267,41 @@ public class WebViewActivity extends AppCompatActivity {
             errorVeiw.setVisibility(View.VISIBLE);
         }
     }
+
+    public void download(String url, String filename) {
+        try {
+            DownloadManager downloadManager = (DownloadManager) mActivity.getSystemService(Context.DOWNLOAD_SERVICE);
+            Uri uri = Uri.parse(url);
+            DownloadManager.Request request = new DownloadManager.Request(uri);
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            //request.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, videoName);
+            //request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS.toString(), filename);
+            request.setDestinationInExternalFilesDir(mActivity, null, "centerChurchVideos/" + filename);
+            Long reference = downloadManager.enqueue(request);
+            Log.d("DOWNLOADVIDEO", reference + "");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    void checkStoragePermissionForDonwload(){
+        new TedPermission(mActivity)
+                .setPermissionListener(permissionlistener)
+                .setRationaleMessage("저장소 접근을 허용해주세요.")
+                .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .check();
+    }
+
+    PermissionListener permissionlistener = new PermissionListener() {
+        @Override
+        public void onPermissionGranted() {
+            //download("https://player.vimeo.com/external/296317003.sd.mp4?s=906fbda76388c0e6974dc95d98ae7c1863be49bd&profile_id=164&download=1", "296317003.sd.mp4");
+            download("https://www.radiantmediaplayer.com/media/bbb-360p.mp4", "296317003.sd.mp4");
+        }
+
+        @Override
+        public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+            Toast.makeText(mActivity, "사용권한이 없습니다." + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
+        }
+    };
 }

@@ -41,6 +41,18 @@
             android:name=".activities.PlayerActivity"
             android:screenOrientation="portrait"></activity>
 
+        <activity
+            android:name=".activities.AudioActivity" android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:screenOrientation="portrait"></activity>
+
+        <activity
+            android:name=".activities.DownloadListActivity"
+            android:screenOrientation="portrait"></activity>
+
+        <activity
+            android:name=".activities.VideoActivity"
+            android:screenOrientation="portrait"></activity>
+
         <receiver android:name=".activities.PlayerActivity$MediaButtonNotification">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
@@ -62,9 +74,21 @@
         <service android:name="yonsei_church.yonsei.center.media.MediaPlayerService">
         </service>
 
+        <service android:name="yonsei_church.yonsei.center.media.DownloadContentService">
+        </service>
+
         <receiver
             android:name="yonsei_church.yonsei.center.receiver.NotificationDismissedReceiver"
             android:exported="false" >
+        </receiver>
+
+        <receiver
+            android:name="yonsei_church.yonsei.center.receiver.CheckDownloadComplete"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />
+            </intent-filter>
         </receiver>
 
         <meta-data

@@ -2,10 +2,12 @@ package yonsei_church.yonsei.center.activities;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -32,6 +34,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import java.lang.ref.WeakReference;
 
 import yonsei_church.yonsei.center.R;
+import yonsei_church.yonsei.center.app.AppConst;
 import yonsei_church.yonsei.center.app.MarketVersionChecker;
 import yonsei_church.yonsei.center.media.MediaPlayerService;
 
@@ -43,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
     WebView mWebView;
     TextView errorVeiw;
     private Activity mContext;
+
+    SQLiteDatabase contentDB = null;
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -58,8 +63,17 @@ public class MainActivity extends AppCompatActivity {
         checkInternetConnection();
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
+            //Stop media player here
+            /*NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(AppConst.NOTIFICATION_ID);
+            Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+            stopService(intent);*/
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancelAll();
+            Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+            stopService(intent);
             finish();
-            stopService(new Intent(this, MediaPlayerService.class));
+
             return;
         }
         //errorVeiw = (TextView) findViewById(R.id.net_error_view);
@@ -240,6 +254,12 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
         intent.putExtra("URL", "http://app.dnsnet.co.kr/main/main.html");
         startActivity(intent);
+
+        makeContentTableIfNull();
+        /*Intent intent = new Intent(MainActivity.this, PlayerActivity.class);
+        startActivity(intent);
+*/
+
     }
 
 
@@ -337,6 +357,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void makeContentTableIfNull() {
+        try {
+            contentDB = this.openOrCreateDatabase(AppConst.DB_NAME, MODE_PRIVATE, null);
+            //contentDB.execSQL("DROP TABLE TB_DOWNLOAD");
+            contentDB.execSQL("CREATE TABLE IF NOT EXISTS TB_DOWNLOAD"
+                            + " (url VARCHAR(256), path VARCHAR(126), title VARCHAR(126), image VARCHAR(256), downDate DATETIME );");
 
-
+            contentDB.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 }

@@ -47,6 +47,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import yonsei_church.yonsei.center.R;
+import yonsei_church.yonsei.center.app.AppConst;
+import yonsei_church.yonsei.center.media.MediaPlayerService;
 import yonsei_church.yonsei.center.media.NotificationChannelSupport;
 
 
@@ -66,17 +68,24 @@ public class PlayerActivity extends AppCompatActivity {
     private ComponentListener componentListener;
     private static MediaSessionCompat mediaSessionCompat;
     private PlaybackStateCompat.Builder mediaPlaybackState;
-    private static final String NOTIFICATION_CHANNEL_ID = "music_notification";
-    private NotificationManager notificationManager;
+    /*private static final String NOTIFICATION_CHANNEL_ID = "music_notification";
+    private NotificationManager notificationManager;*/
+
+    private String mMediaUrl;
+    private int mPostition;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d("EXOPLAYER", "START");
 
+        mMediaUrl = getIntent().getStringExtra("mediaUrl");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
         //Reference to Exo player view
         mPlayerView = findViewById(R.id.video_player_view);
+
         componentListener = new ComponentListener();
         mediaSessionCompat = new MediaSessionCompat(this, TAG);
         mediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
@@ -92,6 +101,11 @@ public class PlayerActivity extends AppCompatActivity {
         mediaSessionCompat.setMediaButtonReceiver(null);
         mediaSessionCompat.setCallback(new MediaCallback());
         mediaSessionCompat.setActive(true);
+
+        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(AppConst.NOTIFICATION_ID);
+        Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+        stopService(intent);
 
     }
 
@@ -111,7 +125,8 @@ public class PlayerActivity extends AppCompatActivity {
         player.setPlayWhenReady(playWhenReady);
         player.seekTo(currentWindow, playbackPosition);
         //(R.string.media_url_mp3,mp4));
-        Uri uri = Uri.parse(getString(R.string.media_url_dash));
+        Log.d("PLAYERACTIVITY", mMediaUrl);
+        Uri uri = Uri.parse(getString(R.string.media_url_mp3));
         MediaSource mediaSource = buildMediaSource(uri);
         player.prepare(mediaSource, true, false);
         player.addListener(componentListener);
@@ -195,7 +210,7 @@ public class PlayerActivity extends AppCompatActivity {
         mediaSessionCompat.setActive(false);
     }
 
-    public void displayNotification(PlaybackStateCompat state) {
+    /*public void displayNotification(PlaybackStateCompat state) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
         NotificationChannelSupport notificationChannelSupport = new NotificationChannelSupport();
         notificationChannelSupport.createNotificationChannel(this, NOTIFICATION_CHANNEL_ID);
@@ -241,7 +256,7 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     }
-
+*/
     public Bitmap getBitmapfromUrl(String imageUrl) {
         try {
             URL url = new URL(imageUrl);
@@ -270,9 +285,9 @@ public class PlayerActivity extends AppCompatActivity {
             player.removeVideoListener(null);
             player.removeAnalyticsListener(componentListener);
             player.release();
-            if (notificationManager != null) {
+        /*    if (notificationManager != null) {
                 notificationManager.cancelAll();
-            }
+            }*/
             player = null;
         }
     }
@@ -312,7 +327,7 @@ public class PlayerActivity extends AppCompatActivity {
                 mediaPlaybackState.setState(PlaybackStateCompat.STATE_PAUSED, player.getContentPosition(), 1f);
             }
             mediaSessionCompat.setPlaybackState(mediaPlaybackState.build());
-            displayNotification(mediaPlaybackState.build());
+            //displayNotification(mediaPlaybackState.build());
         }
     }
 
