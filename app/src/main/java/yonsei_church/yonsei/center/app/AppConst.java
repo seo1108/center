@@ -11,6 +11,7 @@ public class AppConst {
     public static String NOTIFICATION_MP_CHANNEL_ID = "MP_NOTIFICATION";
     public static String NOTIFICATION_DOWNLOAD_CHANNEL_ID = "DONWLOAD_NOTIFICATION";
 
+    public static String DEFAULT_IMAGE = "http://app.dnsnet.co.kr/images/common/logo.png";
     public static int MEDIA_CURRENT_POSITION = 0;
     public static String MEDIA_MP3_URL = "";
     public static String MEDIA_MP3_TITLE = "";

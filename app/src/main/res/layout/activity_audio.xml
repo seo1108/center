@@ -1,101 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_gravity="bottom"
-    android:gravity="center"
     android:orientation="vertical"
     android:background="#000"
     tools:context="yonsei_church.yonsei.center.activities.AudioActivity">
-
-
-    <ImageView
-        android:id="@+id/image"
-        android:padding="10dp"
-        android:src="@drawable/ic_launcher"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="500dp"
-        android:adjustViewBounds="true"
-        android:scaleType="centerCrop"
-        android:layout_gravity="top"/>
-
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="20dp"
-        android:gravity="bottom"
-        android:textSize="20dp"
-        android:text="PLAY/STOP SONG.\nSCRUB WITH SEEKBAR"
-        android:textColor="#fff"
-        android:textStyle="bold" />
-
-
-    <SeekBar
-        android:paddingTop="20dp"
-        android:id="@+id/seekbar"
-        android:layout_margin="16dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:progressTint="@color/playButtonYT"
-        android:thumbTint="@color/playButtonYT"
-        android:layout_gravity="bottom" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="#f7da64"/>
-
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:layout_gravity="left"
-        android:paddingLeft="30dp"
-        android:text="볼륨조절"
-        android:textColor="#fff"
-        android:textStyle="bold" />
-
-
-    <SeekBar
-        android:paddingTop="0dp"
-        android:id="@+id/seekbar_volume"
-        android:layout_margin="16dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:progressTint="@color/playButtonBlue"
-        android:thumbTint="@color/playButtonBlue"
-        android:layout_gravity="bottom" />
-
-
+        android:layout_height="wrap_content">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center">
+        android:orientation="vertical">
+        <ImageView
+            android:id="@+id/image"
+            android:padding="10dp"
+            android:src="@drawable/ic_launcher"
+            android:layout_width="match_parent"
+            android:layout_height="380dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:layout_gravity="top"/>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_gravity="bottom|center"
-        android:background="@color/playButtonYT"
-        android:src="@android:drawable/ic_media_play"
-        android:text="PLAY SOUND" />
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="20dp"
+            android:layout_gravity="center"
+            android:textSize="20dp"
+            android:text="PLAY/STOP SONG.\nSCRUB WITH SEEKBAR"
+            android:textColor="#fff"
+            android:textStyle="bold" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/buttonExit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_gravity="bottom|center"
-        android:background="@color/playButtonBlue"
-        android:src="@android:drawable/ic_lock_power_off"/>
+
+        <SeekBar
+            android:paddingTop="20dp"
+            android:id="@+id/seekbar"
+            android:layout_margin="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:progressTint="@color/playButtonYT"
+            android:thumbTint="@color/playButtonYT"
+             />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#f7da64"/>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:layout_gravity="left"
+            android:paddingLeft="30dp"
+            android:text="볼륨조절"
+            android:textColor="#fff"
+            android:textStyle="bold" />
+
+
+        <SeekBar
+            android:paddingTop="0dp"
+            android:id="@+id/seekbar_volume"
+            android:layout_margin="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:progressTint="@color/playButtonBlue"
+            android:thumbTint="@color/playButtonBlue"/>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="bottom|center">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:layout_gravity="bottom|center"
+            android:background="@color/playButtonYT"
+            android:src="@android:drawable/ic_media_play"
+            android:text="PLAY SOUND" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/buttonExit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:layout_gravity="bottom|center"
+            android:background="@color/playButtonBlue"
+            android:src="@android:drawable/ic_lock_power_off"/>
+        </LinearLayout>
     </LinearLayout>
-
-
+    </ScrollView>
 </LinearLayout>

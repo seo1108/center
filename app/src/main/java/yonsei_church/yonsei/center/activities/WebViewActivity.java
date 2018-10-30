@@ -307,7 +307,12 @@ public class WebViewActivity extends AppCompatActivity {
                     String[] args = Util.urlDecode(arg).split("\\^");
                     String mediaUrl = args[0];
                     String mediaTitle = args[1];
-                    String mediaImage = Util.checkNull(args[2], "");
+                    String mediaImage = "";
+                    try {
+                        mediaImage = Util.checkNull(args[2], "");
+                    } catch (Exception ex) {
+                        
+                    }
 
 
 

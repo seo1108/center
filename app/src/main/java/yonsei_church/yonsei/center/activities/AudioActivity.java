@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.support.design.widget.FloatingActionButton;
@@ -94,7 +95,12 @@ public class AudioActivity extends AppCompatActivity implements Runnable, MediaP
 
         imageView = findViewById(R.id.image);
         //Picasso.with(this).load("https://dispatch.cdnser.be/wp-content/uploads/2017/12/20171227221249_1.png").into(imageView);
-        Glide.with(this).load(mImage).into(imageView);
+        if (!"".equals(AppConst.MEDIA_MP3_IMAGE)) {
+            Glide.with(this).load(mImage).into(imageView);
+        } else {
+            //Glide.with(this).load(AppConst.DEFAULT_IMAGE).into(imageView);
+            Glide.with(this).load(R.drawable.ic_action_name).into(imageView);
+        }
 
         txtTitle = findViewById(R.id.title);
         txtTitle.setText(mTitle);
