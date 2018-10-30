@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,6 +28,7 @@ public class DownloadListActivity  extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private DownloadVideoAdapter mAdapter;
     SQLiteDatabase contentDB = null;
+    NestedScrollView scrollView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,6 +50,8 @@ public class DownloadListActivity  extends AppCompatActivity {
         mAdapter = new DownloadVideoAdapter(this, new ArrayList<DownloadVideoItem>()) {
         };
 
+        scrollView = (NestedScrollView) findViewById(R.id.scrollView);
+        scrollView.setNestedScrollingEnabled(false);
 
     }
 

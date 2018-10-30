@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
@@ -30,13 +31,20 @@ import yonsei_church.yonsei.center.media.MediaPlayerService;
 public class AudioActivity extends AppCompatActivity implements Runnable, MediaPlayer.OnPreparedListener {
     MediaPlayer mediaPlayer = new MediaPlayer();
     SeekBar seekBar;
+    SeekBar seekVolumn;
     ImageView imageView;
-    boolean wasPlaying = false;
+    TextView txtTitle;
+    //boolean wasPlaying = true;
     FloatingActionButton fab;
+    FloatingActionButton fabExit;
 
     private String mMediaUrl;
+    private String mTitle;
+    private String mImage;
     private int mPostition;
     private String mTotalDuration;
+
+    private boolean isExit = false;
 
     private String defaultImage = "https://dispatch.cdnser.be/wp-content/uploads/2017/12/20171227221249_1.png";
 
@@ -51,10 +59,19 @@ public class AudioActivity extends AppCompatActivity implements Runnable, MediaP
 
 
         mMediaUrl = getIntent().getStringExtra("mediaUrl");
-        //Postition = getIntent().getIntExtra("position", 0);
-        mPostition = AppConst.MEDIA_CUURECT_POSITION;
+        mTitle = getIntent().getStringExtra("title");
+        mImage = getIntent().getStringExtra("image");
 
-        Log.d("AUDIOACTIVITY" , "position : " + mPostition + " " + mMediaUrl);
+        //Postition = getIntent().getIntExtra("position", 0);
+
+        mMediaUrl = AppConst.MEDIA_MP3_URL;
+        mTitle = AppConst.MEDIA_MP3_TITLE;
+        mImage = AppConst.MEDIA_MP3_IMAGE;
+        mPostition = AppConst.MEDIA_CURRENT_POSITION;
+
+        //wasPlaying = AppConst.MEDIA_MP3_ISPLAY;
+
+        Log.d("AUDIOACTIVITY" , "position : " + mPostition + " " + AppConst.MEDIA_MP3_ISPLAY);
         fab = findViewById(R.id.button);
         fab.setRippleColor(getResources().getColor(R.color.playButton));
         fab.setBackgroundTintList(getResources().getColorStateList(R.color.playButton));
@@ -65,16 +82,30 @@ public class AudioActivity extends AppCompatActivity implements Runnable, MediaP
             }
         });
 
+        fabExit = findViewById(R.id.buttonExit);
+        fabExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                isExit = true;
+                finish();
+            }
+        });
+
+
         imageView = findViewById(R.id.image);
         //Picasso.with(this).load("https://dispatch.cdnser.be/wp-content/uploads/2017/12/20171227221249_1.png").into(imageView);
-        Glide.with(this).load("https://dispatch.cdnser.be/wp-content/uploads/2017/12/20171227221249_1.png").diskCacheStrategy(DiskCacheStrategy.ALL).into(imageView);
+        Glide.with(this).load(mImage).into(imageView);
+
+        txtTitle = findViewById(R.id.title);
+        txtTitle.setText(mTitle);
+
         //initPlay();
         fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, android.R.drawable.ic_media_pause));
         try {
-            this.mediaPlayer.setDataSource(mMediaUrl);
+            this.mediaPlayer.setDataSource(AppConst.MEDIA_MP3_URL);
             this.mediaPlayer.prepare();
         } catch (IOException ex) {
-
+            ex.printStackTrace();
         }
 
         NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
@@ -83,8 +114,13 @@ public class AudioActivity extends AppCompatActivity implements Runnable, MediaP
         stopService(intent);
 
         this.mediaPlayer.setVolume(0.5f, 0.5f);
-        this.mediaPlayer.seekTo(mPostition);
+        this.mediaPlayer.seekTo(AppConst.MEDIA_CURRENT_POSITION);
         this.mediaPlayer.start();
+        Log.d("AUDIOACTIVITY", AppConst.MEDIA_MP3_ISPLAY + "");
+        if (!AppConst.MEDIA_MP3_ISPLAY) {
+            this.mediaPlayer.pause();
+            fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, android.R.drawable.ic_media_play));
+        }
         Log.d("AUDIOACTIVITY", "REVEICEPOS : " + mPostition + "CURPOS : " + this.mediaPlayer.getCurrentPosition() + "___" + this.mediaPlayer.getDuration());
         this.mediaPlayer.setLooping(false);
         //seekBar.setMax(this.mediaPlayer.getDuration());
@@ -176,6 +212,28 @@ public class AudioActivity extends AppCompatActivity implements Runnable, MediaP
 
         seekBarHint.setVisibility(View.GONE);
 
+        seekVolumn = findViewById(R.id.seekbar_volume);
+        final AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        int nMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int nCurrentVolumn = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        seekVolumn.setMax(nMax); seekVolumn.setProgress(nCurrentVolumn);
+        seekVolumn.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // TODO Auto-generated method stub
+            }
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // TODO Auto-generated method stub
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+            }
+
+        });
+
         new Thread(this).start();
     }
 
@@ -234,52 +292,27 @@ public class AudioActivity extends AppCompatActivity implements Runnable, MediaP
     }
 */
 
-    public void initPlay() {
-        fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, android.R.drawable.ic_media_pause));
-        try {
-            this.mediaPlayer.setDataSource(mMediaUrl);
-            this.mediaPlayer.prepare();
-        } catch (IOException ex) {
 
-        }
-
-        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancel(AppConst.NOTIFICATION_ID);
-        Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
-        stopService(intent);
-
-        this.mediaPlayer.setVolume(0.5f, 0.5f);
-        this.mediaPlayer.seekTo(mPostition);
-        this.mediaPlayer.start();
-        Log.d("AUDIOACTIVITY", "CURPOS : " + this.mediaPlayer.getCurrentPosition() + "___" + this.mediaPlayer.getDuration());
-        this.mediaPlayer.setLooping(false);
-        //seekBar.setMax(this.mediaPlayer.getDuration());
-
-        new Thread(this).start();
-
-        Log.d("AUDIOACTIVITY", "prepared0 : " + this.mediaPlayer.getCurrentPosition());
-        Log.d("AUDIOACTIVITY", "prepared1 : " + this.mediaPlayer.getDuration());
-    }
 
 
 
     public void playSong() {
         try {
-            Log.d("AUDIOACTIVITY", "PLAYSONG " + this.mediaPlayer.isPlaying());
+
             if (this.mediaPlayer != null && this.mediaPlayer.isPlaying()) {
                 /*clearMediaPlayer();
                 seekBar.setProgress(0);
                 wasPlaying = true;
                 fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, android.R.drawable.ic_media_play));*/
                 this.mediaPlayer.pause();
-                wasPlaying = true;
+                AppConst.MEDIA_MP3_ISPLAY = false;
                 fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, android.R.drawable.ic_media_play));
-
+                Log.d("AUDIOACTIVITY", "PLAYSONG 1 " + AppConst.MEDIA_MP3_ISPLAY);
             } else if (this.mediaPlayer != null && !this.mediaPlayer.isPlaying()) {
-                wasPlaying = true;
+                AppConst.MEDIA_MP3_ISPLAY = true;
                 this.mediaPlayer.start();
                 fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, android.R.drawable.ic_media_pause));
-
+                Log.d("AUDIOACTIVITY", "PLAYSONG 2 " + AppConst.MEDIA_MP3_ISPLAY);
             }
 
 
@@ -294,7 +327,7 @@ public class AudioActivity extends AppCompatActivity implements Runnable, MediaP
 
             }*/
 
-            wasPlaying = false;
+            //wasPlaying = false;
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -325,12 +358,19 @@ public class AudioActivity extends AppCompatActivity implements Runnable, MediaP
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
-        intent.setAction( MediaPlayerService.ACTION_SEEK_TO );
-        intent.putExtra("streamLink","https://s3-ap-northeast-2.amazonaws.com/webaudio.ybstv.com/mp3/yn20181021-322.mp3");
-        intent.putExtra("position",this.mediaPlayer.getCurrentPosition());
-        //AppConst.MEDIA_CUURECT_POSITION = 0;
-        startService(intent);
+        if (!isExit) {
+            Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+            intent.setAction(MediaPlayerService.ACTION_PLAY);
+            /*intent.putExtra("streamLink", AppConst.MEDIA_MP3_URL);
+            intent.putExtra("position", this.mediaPlayer.getCurrentPosition());
+            intent.putExtra("title", AppConst.MEDIA_MP3_TITLE);
+            intent.putExtra("image", AppConst.MEDIA_MP3_IMAGE);
+            intent.putExtra("isPlay", wasPlaying);*/
+            Log.d("AUDIOACTIVITY", "PLAYSONG 3 " + AppConst.MEDIA_MP3_ISPLAY);
+            AppConst.MEDIA_CURRENT_POSITION = this.mediaPlayer.getCurrentPosition();
+            //AppConst.MEDIA_CUURECT_POSITION = 0;
+            startService(intent);
+        }
 
         clearMediaPlayer();
     }

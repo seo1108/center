@@ -1,6 +1,8 @@
 package yonsei_church.yonsei.center.app;
 
 public class AppConst {
+    public static String DOMAIN = "http://app.dnsnet.co.kr/pro/";
+
     public static String DB_NAME = "YonseiCenterChurch";
 
     public static int NOTIFICATION_ID = 655;
@@ -9,5 +11,9 @@ public class AppConst {
     public static String NOTIFICATION_MP_CHANNEL_ID = "MP_NOTIFICATION";
     public static String NOTIFICATION_DOWNLOAD_CHANNEL_ID = "DONWLOAD_NOTIFICATION";
 
-    public static int MEDIA_CUURECT_POSITION = 0;
+    public static int MEDIA_CURRENT_POSITION = 0;
+    public static String MEDIA_MP3_URL = "";
+    public static String MEDIA_MP3_TITLE = "";
+    public static String MEDIA_MP3_IMAGE = "";
+    public static boolean MEDIA_MP3_ISPLAY;
 }

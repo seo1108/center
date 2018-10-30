@@ -1,12 +1,15 @@
 package yonsei_church.yonsei.center.receiver;
 
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.net.URLDecoder;
@@ -16,17 +19,22 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import yonsei_church.yonsei.center.activities.AlertDialogActivity;
+import yonsei_church.yonsei.center.activities.DownloadListActivity;
 import yonsei_church.yonsei.center.app.AppConst;
+import yonsei_church.yonsei.center.app.DialogHelper;
+import yonsei_church.yonsei.center.util.Util;
 
 import static android.content.Context.MODE_PRIVATE;
 
 public class CheckDownloadComplete extends BroadcastReceiver {
     SQLiteDatabase contentDB = null;
+    Context mContext;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         // TODO Auto-generated method stub
-
+        mContext = context;
         String action = intent.getAction();
         if (action.equals(DownloadManager.ACTION_DOWNLOAD_COMPLETE)) {
             DownloadManager.Query query = new DownloadManager.Query();
@@ -45,36 +53,27 @@ public class CheckDownloadComplete extends BroadcastReceiver {
                     if (status == DownloadManager.STATUS_SUCCESSFUL) {
                         try {
 
-                            String filePath = urlDecode(cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)));
+                            String filePath = Util.urlDecode(cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI)));
                             String title = filePath.substring(filePath.lastIndexOf("/")+1, filePath.lastIndexOf("."));
-                            String source = urlDecode(cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_TITLE)));
-                            String image = urlDecode(cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_DESCRIPTION)));
+                            String source = Util.urlDecode(cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_TITLE)));
+                            String image = Util.urlDecode(cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_DESCRIPTION)));
 
-                            Toast.makeText(context, "다운로드 완료", Toast.LENGTH_SHORT).show();
+
 
                             contentDB = context.openOrCreateDatabase(AppConst.DB_NAME, MODE_PRIVATE, null);
                             contentDB.execSQL("INSERT INTO TB_DOWNLOAD"
-                                    + " (url, path, title, image, downDate)  VALUES ('" + source + "', '" +  filePath +"', '" + title  + "', + '" + image + "', datetime('now', 'localtime'))");
-
-
-
-                            String sql = "SELECT url, path, title, downDate from TB_DOWNLOAD";
-                            Cursor results = contentDB.rawQuery(sql, null);
-
-                            results.moveToFirst();
-
-                            while(!results.isAfterLast()){
-                                /*int id = results.getInt(0);
-                                String voca = results.getString(1);*/
-                                Log.d("DownloadManager1", results.getString(0) + "_____________" + results.getString(1) + "__________" + results.getString(2) + "_________" + results.getString(3));
-                                results.moveToNext();
-                            }
-                            results.close();
+                                    + " (url, path, title, image, downDate)  VALUES ('" + source + "', '" +  filePath +"', '" + title  + "', '"+ image +"', datetime('now', 'localtime'))");
 
                             contentDB.close();
 
-                        } catch (Exception ex) {
+                            Intent i=new Intent(context.getApplicationContext(),AlertDialogActivity.class);
+                            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            context.startActivity(i);
 
+                            //Toast.makeText(context, "다운로드 완료", Toast.LENGTH_SHORT).show();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            Toast.makeText(context, "다운로드 실패", Toast.LENGTH_SHORT).show();
                         }
                         //file contains downloaded file name
 
@@ -87,14 +86,30 @@ public class CheckDownloadComplete extends BroadcastReceiver {
         }
     }
 
-    public String urlDecode(String str) {
-        String result = "";
-        try {
-            result = URLDecoder.decode(str, "UTF-8");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    public void ShowYesNoDialog() {
 
-        return result;
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        Intent intent = new Intent(mContext, DownloadListActivity.class);
+                        mContext.startActivity(intent);
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //No button clicked
+                        break;
+                }
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setMessage("다운로드 화면으로 이동하시겠습니까?")
+                .setPositiveButton("예", dialogClickListener)
+                .setNegativeButton("아니오", dialogClickListener);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        alertDialog.show();
     }
 }

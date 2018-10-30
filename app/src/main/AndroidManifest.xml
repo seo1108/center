@@ -11,6 +11,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
 
     <application
@@ -52,6 +54,11 @@
         <activity
             android:name=".activities.VideoActivity"
             android:screenOrientation="portrait"></activity>
+
+        <activity
+            android:name=".activities.AlertDialogActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+        </activity>
 
         <receiver android:name=".activities.PlayerActivity$MediaButtonNotification">
             <intent-filter>

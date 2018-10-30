@@ -14,6 +14,7 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import yonsei_church.yonsei.center.R;
 import yonsei_church.yonsei.center.activities.WebViewActivity;
@@ -37,12 +38,13 @@ public class DownloadContentService extends Service {
             //request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS.toString(), "centerChurchVideos/" + filename);
             request.setDestinationInExternalFilesDir(getApplicationContext(), null, "centerChurchVideos/" + filename);
             request.setTitle(mUrl);
-            request.setDescription("https://dispatch.cdnser.be/wp-content/uploads/2017/12/20171227221249_1.png");
-
+            //request.setDescription("https://dispatch.cdnser.be/wp-content/uploads/2017/12/20171227221249_1.png");
+            Toast.makeText(getApplicationContext(), "다운로드 시작 " + mUrl, Toast.LENGTH_SHORT).show();
             Long reference = downloadManager.enqueue(request);
             Log.d("DOWNLOADVIDEO", reference + "");
 
-            buildNotification();
+            //buildNotification();
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }

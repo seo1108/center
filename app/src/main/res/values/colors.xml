@@ -6,4 +6,5 @@
     <color name="gray">#E6E6E6</color>
     <color name="playButton">#f94e51</color>
     <color name="playButtonBlue">#3c8dbc</color>
+    <color name="playButtonYT">#ff0000</color>
 </resources>

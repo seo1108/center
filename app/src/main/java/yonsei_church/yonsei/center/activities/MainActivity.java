@@ -1,5 +1,7 @@
 package yonsei_church.yonsei.center.activities;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
@@ -14,7 +16,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -29,13 +33,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.google.android.exoplayer2.C;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.lang.ref.WeakReference;
 
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 import yonsei_church.yonsei.center.R;
+import yonsei_church.yonsei.center.api.APIService;
+import yonsei_church.yonsei.center.api.CommonAPI;
+import yonsei_church.yonsei.center.api.CommonCallback;
+import yonsei_church.yonsei.center.api.StringCallback;
 import yonsei_church.yonsei.center.app.AppConst;
 import yonsei_church.yonsei.center.app.MarketVersionChecker;
+import yonsei_church.yonsei.center.data.ResponseModel;
 import yonsei_church.yonsei.center.media.MediaPlayerService;
 
 
@@ -245,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             Log.d("FCM_TOKEN", "BEFORE");
             String fcmToken = FirebaseInstanceId.getInstance().getToken();
+            requesUpdateFCMToken(fcmToken);
             Log.d("FCM_TOKEN", fcmToken);
         } catch (Exception ex) {
             Log.d("FCM_TOKEN", "ERROR");
@@ -262,7 +275,32 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void requesUpdateFCMToken(String token) {
+        // 사용자 정보획득
+        String mseq = "0";
+        // 사용자 전화번호 획득
+        String mPhoneNumber = "";
+        try {
+            TelephonyManager mgr = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            mPhoneNumber = mgr.getLine1Number();
+            mPhoneNumber = mPhoneNumber.replace("+82", "0");
+        } catch (SecurityException se) {
+            mPhoneNumber = "";
+        }
 
+        CommonAPI api = APIService.createService(CommonAPI.class, this);
+        api.token(mseq, mPhoneNumber, token,
+                new StringCallback<String>() {
+                    @Override
+                    public void apiSuccess(String responseString) {
+                        Log.d("RESPONSESTRING", responseString);
+                    }
+                    @Override
+                    public void apiError(RetrofitError error) {
+                    }
+                }
+        );
+    }
 
     /*@Override
 

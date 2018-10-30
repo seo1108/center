@@ -2,17 +2,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#000"
     android:orientation="vertical">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/ac_fast_delivery_recyclerView"
+    <android.support.v4.widget.NestedScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingBottom="2dp"
-        android:paddingTop="2dp"
-        android:scrollbars="vertical"
-        android:visibility="visible"
-        tools:context="com.showbootv.mobile.activities.MainActivity"
-        tools:listitem="@layout/item_download_video"></android.support.v7.widget.RecyclerView>
+        android:layout_height="match_parent">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/ac_fast_delivery_recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingTop="10dp"
+            android:scrollbars="vertical"
+            android:visibility="visible"
+            tools:context="com.showbootv.mobile.activities.MainActivity"
+            tools:listitem="@layout/item_download_video"></android.support.v7.widget.RecyclerView>
+    </android.support.v4.widget.NestedScrollView>
 </LinearLayout>

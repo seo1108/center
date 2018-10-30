@@ -16,7 +16,7 @@
         android:padding="10dp"
         android:src="@drawable/ic_launcher"
         android:layout_width="match_parent"
-        android:layout_height="520dp"
+        android:layout_height="500dp"
         android:adjustViewBounds="true"
         android:scaleType="centerCrop"
         android:layout_gravity="top"/>
@@ -27,6 +27,7 @@
         android:layout_height="wrap_content"
         android:paddingTop="20dp"
         android:gravity="bottom"
+        android:textSize="20dp"
         android:text="PLAY/STOP SONG.\nSCRUB WITH SEEKBAR"
         android:textColor="#fff"
         android:textStyle="bold" />
@@ -38,16 +39,43 @@
         android:layout_margin="16dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:progressTint="@color/playButton"
-        android:thumbTint="@color/playButton"
+        android:progressTint="@color/playButtonYT"
+        android:thumbTint="@color/playButtonYT"
         android:layout_gravity="bottom" />
-
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:text="#f7da64"/>
 
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:layout_gravity="left"
+        android:paddingLeft="30dp"
+        android:text="볼륨조절"
+        android:textColor="#fff"
+        android:textStyle="bold" />
+
+
+    <SeekBar
+        android:paddingTop="0dp"
+        android:id="@+id/seekbar_volume"
+        android:layout_margin="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:progressTint="@color/playButtonBlue"
+        android:thumbTint="@color/playButtonBlue"
+        android:layout_gravity="bottom" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/button"
@@ -55,8 +83,19 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:layout_gravity="bottom|center"
-        android:background="@color/playButton"
+        android:background="@color/playButtonYT"
         android:src="@android:drawable/ic_media_play"
         android:text="PLAY SOUND" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/buttonExit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_gravity="bottom|center"
+        android:background="@color/playButtonBlue"
+        android:src="@android:drawable/ic_lock_power_off"/>
+    </LinearLayout>
+
 
 </LinearLayout>
