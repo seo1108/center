@@ -45,7 +45,6 @@
 
         <activity
             android:name=".activities.AudioActivity" android:theme="@style/Theme.AppCompat.NoActionBar"
-            android:launchMode="singleTop"
             android:screenOrientation="portrait"></activity>
 
         <activity
