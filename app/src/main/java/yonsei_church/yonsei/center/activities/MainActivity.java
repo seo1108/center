@@ -8,11 +8,14 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -37,6 +40,7 @@ import com.google.android.exoplayer2.C;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.lang.ref.WeakReference;
+import java.net.URLEncoder;
 
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -46,9 +50,12 @@ import yonsei_church.yonsei.center.api.CommonAPI;
 import yonsei_church.yonsei.center.api.CommonCallback;
 import yonsei_church.yonsei.center.api.StringCallback;
 import yonsei_church.yonsei.center.app.AppConst;
+import yonsei_church.yonsei.center.app.DialogHelper;
 import yonsei_church.yonsei.center.app.MarketVersionChecker;
+import yonsei_church.yonsei.center.data.AppVersionModel;
 import yonsei_church.yonsei.center.data.ResponseModel;
 import yonsei_church.yonsei.center.media.MediaPlayerService;
+import yonsei_church.yonsei.center.util.Util;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -62,24 +69,22 @@ public class MainActivity extends AppCompatActivity {
     SQLiteDatabase contentDB = null;
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    Activity mActivity;
 
     @Override
 
     protected void onCreate(Bundle savedInstanceState) {
-
-        super.onCreate(savedInstanceState);
+    super.onCreate(savedInstanceState);
+        mActivity = this;
 
         setContentView(R.layout.activity_main);
 
         // 인터넷 연결확인
         checkInternetConnection();
 
+
+
         if (getIntent().getBooleanExtra("EXIT", false)) {
-            //Stop media player here
-            /*NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel(AppConst.NOTIFICATION_ID);
-            Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
-            stopService(intent);*/
             NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.cancelAll();
             Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
@@ -88,196 +93,70 @@ public class MainActivity extends AppCompatActivity {
 
             return;
         }
-        //errorVeiw = (TextView) findViewById(R.id.net_error_view);
 
-        /*mWebView = (WebView) findViewById(R.id.activity_main_webview);
-        WebSettings webSettings = mWebView.getSettings();
-
-        webSettings.setJavaScriptEnabled(true);
-
-
-        mWebView.setWebViewClient(new WebViewClient() {
-
-
-            @Override
-
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-
-                view.loadUrl(url);
-
-                return true;
-
-            }
-
-            //네트워크연결에러
-
-            @Override
-
-            public void onReceivedError(WebView view, int errorCode,String description, String failingUrl) {
-
-                switch(errorCode) {
-
-                    case ERROR_AUTHENTICATION: break;               // 서버에서 사용자 인증 실패
-
-                    case ERROR_BAD_URL: break;                           // 잘못된 URL
-
-                    case ERROR_CONNECT: break;                          // 서버로 연결 실패
-
-                    case ERROR_FAILED_SSL_HANDSHAKE: break;    // SSL handshake 수행 실패
-
-                    case ERROR_FILE: break;                                  // 일반 파일 오류
-
-                    case ERROR_FILE_NOT_FOUND: break;               // 파일을 찾을 수 없습니다
-
-                    case ERROR_HOST_LOOKUP: break;           // 서버 또는 프록시 호스트 이름 조회 실패
-
-                    case ERROR_IO: break;                              // 서버에서 읽거나 서버로 쓰기 실패
-
-                    case ERROR_PROXY_AUTHENTICATION: break;   // 프록시에서 사용자 인증 실패
-
-                    case ERROR_REDIRECT_LOOP: break;               // 너무 많은 리디렉션
-
-                    case ERROR_TIMEOUT: break;                          // 연결 시간 초과
-
-                    case ERROR_TOO_MANY_REQUESTS: break;     // 페이지 로드중 너무 많은 요청 발생
-
-                    case ERROR_UNKNOWN: break;                        // 일반 오류
-
-                    case ERROR_UNSUPPORTED_AUTH_SCHEME: break; // 지원되지 않는 인증 체계
-
-                    case ERROR_UNSUPPORTED_SCHEME: break;          // URI가 지원되지 않는 방식
-
-                }
-
-                super.onReceivedError(view, errorCode, description, failingUrl);
-
-                mWebView.setVisibility(View.GONE);
-
-                errorVeiw.setVisibility(View.VISIBLE);
-
-            }
-
-        });
-
-        mWebView.setWebChromeClient(new WebChromeClient() {
-
-            //alert 처리
-
-            @Override
-
-            public boolean onJsAlert(WebView view, String url, String message, final JsResult result) {
-
-                new AlertDialog.Builder(view.getContext())
-
-                        .setTitle("알림")
-
-                        .setMessage(message)
-
-                        .setPositiveButton(android.R.string.ok,
-
-                                new AlertDialog.OnClickListener(){
-
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                        result.confirm();
-
-                                    }
-
-                                })
-
-                        .setCancelable(false)
-
-                        .create()
-
-                        .show();
-
-                return true;
-
-            }
-
-            //confirm 처리
-
-            @Override
-
-            public boolean onJsConfirm(WebView view, String url, String message,
-
-                                       final JsResult result) {
-
-                new AlertDialog.Builder(view.getContext())
-
-                        .setTitle("알림")
-
-                        .setMessage(message)
-
-                        .setPositiveButton("Yes",
-
-                                new AlertDialog.OnClickListener(){
-
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                        result.confirm();
-
-                                    }
-
-                                })
-
-                        .setNegativeButton("No",
-
-                                new AlertDialog.OnClickListener(){
-
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                        result.cancel();
-
-                                    }
-
-                                })
-
-                        .setCancelable(false)
-
-                        .create()
-
-                        .show();
-
-                return true;
-
-            }
-
-
-        });
-*/
         BackgroundThread thread = new BackgroundThread();
         thread.setDaemon(true);
         thread.start();
 
-        //mWebView.setWebChromeClient(new FullscreenableChromeClient(MainActivity.this));
-        //mWebView.loadUrl("http://app.dnsnet.co.kr/main/main.html");  //http://www.ybstv.com
-
         // FCM 토큰 업데이트
         try {
-            Log.d("FCM_TOKEN", "BEFORE");
             String fcmToken = FirebaseInstanceId.getInstance().getToken();
             requesUpdateFCMToken(fcmToken);
-            Log.d("FCM_TOKEN", fcmToken);
         } catch (Exception ex) {
-            Log.d("FCM_TOKEN", "ERROR");
-           ex.printStackTrace();
+            ex.printStackTrace();
         }
 
-        Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
-        intent.putExtra("URL", "http://app.dnsnet.co.kr/main/main.html");
-        startActivity(intent);
+        /*Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
+        intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html");
+        startActivity(intent);*/
+
 
         makeContentTableIfNull();
-        /*Intent intent = new Intent(MainActivity.this, PlayerActivity.class);
-        startActivity(intent);
-*/
 
+        appVersionCheck();
     }
+
+    public String getDeviceName() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.startsWith(manufacturer)) {
+
+            return capitalize(model);
+        }
+        Log.d("PHONEINFO", model + "^" + capitalize(manufacturer));
+        return model + "^" + capitalize(manufacturer);
+    }
+
+    private String capitalize(String str) {
+        if (TextUtils.isEmpty(str)) {
+            return str;
+        }
+        char[] arr = str.toCharArray();
+        boolean capitalizeNext = true;
+
+        StringBuilder phrase = new StringBuilder();
+        for (char c : arr) {
+            if (capitalizeNext && Character.isLetter(c)) {
+                phrase.append(Character.toUpperCase(c));
+                capitalizeNext = false;
+                continue;
+            } else if (Character.isWhitespace(c)) {
+                capitalizeNext = true;
+            }
+            phrase.append(c);
+        }
+
+        return phrase.toString();
+    }
+
 
     public void requesUpdateFCMToken(String token) {
         // 사용자 정보획득
-        String mseq = "0";
+        SharedPreferences pref = getSharedPreferences("userInfo", MODE_PRIVATE);
+        String mseq = pref.getString("userSeq", "0");
+
+        String agent = getDeviceName();
+
         // 사용자 전화번호 획득
         String mPhoneNumber = "";
         try {
@@ -288,8 +167,11 @@ public class MainActivity extends AppCompatActivity {
             mPhoneNumber = "";
         }
 
+        Log.d("RESPONSESTRING", mseq + "__" + agent + "__" + mPhoneNumber);
+        Log.d("RESPONSESTRING", Util.urlEncode(mseq) + "__" + Util.urlEncode(agent) + "__" + Util.urlEncode(mPhoneNumber));
+
         CommonAPI api = APIService.createService(CommonAPI.class, this);
-        api.token(mseq, mPhoneNumber, token,
+        api.token(mseq, mPhoneNumber, token, "A", agent,
                 new StringCallback<String>() {
                     @Override
                     public void apiSuccess(String responseString) {
@@ -297,24 +179,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                     @Override
                     public void apiError(RetrofitError error) {
+                        Log.d("RESPONSESTRING", error.toString());
                     }
                 }
         );
     }
-
-    /*@Override
-
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (mWebView.canGoBack()) {
-                mWebView.goBack();
-                return false;
-            }
-        }
-
-        return super.onKeyDown(keyCode, event);
-
-    }*/
 
     public boolean checkInternetConnection() {
         ConnectivityManager cm =
@@ -362,6 +231,64 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void appVersionCheck(){
+        CommonAPI api = APIService.createService(CommonAPI.class, this);
+        api.version(
+                new CommonCallback<AppVersionModel>() {
+                    @Override
+                    public void apiSuccess(AppVersionModel model) {
+                        String flag = model.getFlag();
+                        int newVersion = Integer.valueOf(model.getVersion().replace(".", "")).intValue();
+                        int oldVersion = Integer.valueOf((Util.getAppVersion(getApplicationContext())).replace(".", "")).intValue();
+
+                        if (newVersion > oldVersion) {
+                            if ("Y".equals(model.getFlag())) {
+                                DialogHelper.alert(MainActivity.this, "최신버전으로 업데이트하셔야 이용이 가능합니다", "업데이트", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                                        intent.setData(Uri.parse("market://details?id=" + getPackageName()));
+                                        startActivity(intent);
+                                    }
+                                });
+                            } else {
+                                DialogHelper.alert(MainActivity.this, "최신버전이 있습니다. 업데이트하시겠습니까?", "업데이트","나중에",
+                                        new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                finish();
+                                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                intent.setData(Uri.parse("market://details?id=" + getPackageName()));
+                                                startActivity(intent);
+                                            }
+                                        },
+                                        new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
+                                                intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html");
+                                                startActivity(intent);
+                                            }
+                                        }
+                                );
+                            }
+                        } else {
+                            Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
+                            intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html");
+                            startActivity(intent);
+                        }
+                    }
+                    @Override
+                    public void apiError(RetrofitError error) {
+                        Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
+                        intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html");
+                        startActivity(intent);
+                    }
+                }
+        );
+    }
+
 
 
     private void handleMessage(Message msg) {
@@ -401,6 +328,9 @@ public class MainActivity extends AppCompatActivity {
             //contentDB.execSQL("DROP TABLE TB_DOWNLOAD");
             contentDB.execSQL("CREATE TABLE IF NOT EXISTS TB_DOWNLOAD"
                             + " (url VARCHAR(256), path VARCHAR(126), title VARCHAR(126), image VARCHAR(256), downDate DATETIME );");
+
+            contentDB.execSQL("CREATE TABLE IF NOT EXISTS TB_USER"
+                    + " (mseq VARCHAR(128) );");
 
             contentDB.close();
         } catch (Exception ex) {

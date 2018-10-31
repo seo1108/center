@@ -37,4 +37,14 @@ public class DialogHelper {
         alert.show();
     }
 
+    public static void alert(Context context, String message, String positiveName, String negativeName, DialogInterface.OnClickListener positiveListener, DialogInterface.OnClickListener negativeListener) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(context);
+        alert.setTitle("연세중앙교회");
+        alert.setMessage(message);
+        alert.setCancelable(false);
+        alert.setPositiveButton(positiveName, positiveListener);
+        alert.setNegativeButton(negativeName, negativeListener);
+        alert.show();
+    }
+
 }

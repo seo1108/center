@@ -5,9 +5,11 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -188,6 +190,7 @@ public class WebViewActivity extends AppCompatActivity {
         });
 
         mWebView.addJavascriptInterface(new AndroidBridge(), "audio");
+        mWebView.addJavascriptInterface(new MediaControlBridge(), "download");
         mWebView.loadUrl(mUrl);
 
 
@@ -235,7 +238,22 @@ public class WebViewActivity extends AppCompatActivity {
             super.onPageFinished(view, url);
             Log.d("onPageFinished", url);
 
+            String userSeq = "";
+            if (url.contains("mseq=")) {
+                String truncateUrl = url.substring(url.indexOf("mseq="));
+                if (truncateUrl.lastIndexOf("&") > 0) {
+                    userSeq = truncateUrl.substring(truncateUrl.indexOf("mseq=") + 5, truncateUrl.lastIndexOf("&"));
+                } else {
+                    userSeq = truncateUrl.substring(truncateUrl.indexOf("mseq=") + 5);
+                }
+            }
 
+            if (!"".equals(userSeq)) {
+                SharedPreferences pref = mActivity.getSharedPreferences("userInfo", MODE_PRIVATE);
+                SharedPreferences.Editor editor = pref.edit();
+                editor.putString("userSeq", userSeq);
+                editor.commit();
+            }
         }
 
         //네트워크연결에러
@@ -324,14 +342,67 @@ public class WebViewActivity extends AppCompatActivity {
                     AppConst.MEDIA_MP3_ISPLAY = true;
                     Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
                     intent.setAction( MediaPlayerService.ACTION_PLAY );
-/*
-                    intent.putExtra("streamLink",AppConst.MEDIA_MP3_URL);
-                    intent.putExtra("position",AppConst.MEDIA_CURRENT_POSITION);
-                    intent.putExtra("title",mediaTitle);
-                    intent.putExtra("image",mediaImage);
-*/
 
                     startService(intent);
+                }
+            });
+        }
+    }
+
+    public class MediaControlBridge {
+        @JavascriptInterface
+        public void go() {
+            new Handler().post(new Runnable() {
+                public void run() {
+/*
+                    try {
+                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                        stopService(intent);
+                    } catch (Exception ex) {
+
+                    }
+*/
+
+                    Log.d("JAVASCRIPT", "GOGO");
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void player() {
+            new Handler().post(new Runnable() {
+                public void run() {
+                    Intent intent = new Intent( WebViewActivity.this, AudioActivity.class );
+                    startActivity(intent);
+/*
+                    try {
+                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                        stopService(intent);
+                    } catch (Exception ex) {
+
+                    }
+*/
+
+                    Log.d("JAVASCRIPT", "GOGO");
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void playerOff() {
+            new Handler().post(new Runnable() {
+                public void run() {
+
+                    try {
+                        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                        notificationManager.cancel(AppConst.NOTIFICATION_ID);
+                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                        stopService(intent);
+                    } catch (Exception ex) {
+
+                    }
+
+                    Log.d("JAVASCRIPT", "PLAYER");
                 }
             });
         }

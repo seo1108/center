@@ -1,5 +1,8 @@
 package yonsei_church.yonsei.center.util;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -8,12 +11,24 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 public class Util {
     public static String urlDecode(String str) {
         String result = "";
         try {
             result = URLDecoder.decode(str, "UTF-8");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return result;
+    }
+
+    public static String urlEncode(String str) {
+        String result = "";
+        try {
+            result = URLEncoder.encode(str, "UTF-8");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -50,6 +65,16 @@ public class Util {
             e.printStackTrace(); return null;
         } finally {
             if(connection!=null) connection.disconnect();
+        }
+    }
+
+    public static String getAppVersion(Context context) {
+        try {
+            PackageInfo pi = context.getPackageManager().getPackageInfo(
+                    context.getPackageName(), 0);
+            return pi.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            return "0";
         }
     }
 }

@@ -197,7 +197,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                 .setSmallIcon(R.drawable.exo_notification_small_icon)
                 //.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
 
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_action_name))
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
                 .setWhen(System.currentTimeMillis())
                 .setOngoing(true)
                 .setColorized(true)
