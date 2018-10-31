@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
             return capitalize(model);
         }
-        Log.d("PHONEINFO", model + "^" + capitalize(manufacturer));
+
         return model + "^" + capitalize(manufacturer);
     }
 
@@ -167,19 +167,14 @@ public class MainActivity extends AppCompatActivity {
             mPhoneNumber = "";
         }
 
-        Log.d("RESPONSESTRING", mseq + "__" + agent + "__" + mPhoneNumber);
-        Log.d("RESPONSESTRING", Util.urlEncode(mseq) + "__" + Util.urlEncode(agent) + "__" + Util.urlEncode(mPhoneNumber));
-
         CommonAPI api = APIService.createService(CommonAPI.class, this);
         api.token(mseq, mPhoneNumber, token, "A", agent,
                 new StringCallback<String>() {
                     @Override
                     public void apiSuccess(String responseString) {
-                        Log.d("RESPONSESTRING", responseString);
                     }
                     @Override
                     public void apiError(RetrofitError error) {
-                        Log.d("RESPONSESTRING", error.toString());
                     }
                 }
         );

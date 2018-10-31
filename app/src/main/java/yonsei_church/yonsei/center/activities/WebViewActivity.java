@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
@@ -193,7 +194,15 @@ public class WebViewActivity extends AppCompatActivity {
         mWebView.addJavascriptInterface(new MediaControlBridge(), "download");
         mWebView.loadUrl(mUrl);
 
+        mWebView.setOnTouchListener(new View.OnTouchListener() {
 
+            public boolean onTouch(View v, MotionEvent event) {
+                WebView.HitTestResult hr = ((WebView)v).getHitTestResult();
+
+                Log.i("TOUCHTOUCH", "getExtra = "+ hr.getExtra() + " Type=" + hr.getType());
+                return false;
+            }
+        });
 
         findViewById(R.id.btn_download).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -363,7 +372,7 @@ public class WebViewActivity extends AppCompatActivity {
                     }
 */
 
-                    Log.d("JAVASCRIPT", "GOGO");
+                    Log.d("JAVASCRIPT", "GO");
                 }
             });
         }
@@ -374,6 +383,7 @@ public class WebViewActivity extends AppCompatActivity {
                 public void run() {
                     Intent intent = new Intent( WebViewActivity.this, AudioActivity.class );
                     startActivity(intent);
+
 /*
                     try {
                         Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
@@ -383,7 +393,7 @@ public class WebViewActivity extends AppCompatActivity {
                     }
 */
 
-                    Log.d("JAVASCRIPT", "GOGO");
+                    Log.d("JAVASCRIPT", "PLAYER");
                 }
             });
         }
@@ -402,7 +412,31 @@ public class WebViewActivity extends AppCompatActivity {
 
                     }
 
-                    Log.d("JAVASCRIPT", "PLAYER");
+                    Log.d("JAVASCRIPT", "PLAYEROFF");
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void playerPause() {
+            new Handler().post(new Runnable() {
+                public void run() {
+
+                    try {
+                        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                        notificationManager.cancel(AppConst.NOTIFICATION_ID);
+                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                        stopService(intent);
+
+                        Intent intent1 = new Intent(getApplicationContext(), MediaPlayerService.class);
+                        intent1.setAction(MediaPlayerService.ACTION_PLAY);
+                        AppConst.MEDIA_MP3_ISPLAY = false;
+                        startService(intent1);
+                    } catch (Exception ex) {
+
+                    }
+
+                    Log.d("JAVASCRIPT", "PLAYERPAUSE");
                 }
             });
         }

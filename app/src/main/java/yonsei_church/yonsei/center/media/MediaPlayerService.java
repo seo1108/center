@@ -49,6 +49,9 @@ import yonsei_church.yonsei.center.activities.WebViewActivity;
 import yonsei_church.yonsei.center.app.AppConst;
 import yonsei_church.yonsei.center.receiver.NotificationDismissedReceiver;
 
+import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT;
+import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK;
+
 public class MediaPlayerService  extends Service implements MediaPlayer.OnPreparedListener {
     public static final String ACTION_PLAY = "action_play";
     public static final String ACTION_SEEK_TO = "actoin_seek_to";
@@ -81,6 +84,26 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         return null;
     }
 
+/*    @Override
+    public void onAudioFocusChange(int focusChange)
+    {
+        if(focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT)
+        {
+            // Pause
+            Log.d("STARTMUSIC", "1");
+        }
+        else if(focusChange == AudioManager.AUDIOFOCUS_GAIN)
+        {
+            // Resume
+            Log.d("STARTMUSIC", "2");
+        }
+        else if(focusChange == AudioManager.AUDIOFOCUS_LOSS)
+        {
+            // Stop or pause depending on your need
+            Log.d("STARTMUSIC", "3");
+        }
+    }*/
+
     /** Called when MediaPlayer is ready */
     @Override
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -99,6 +122,13 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         mTimer.scheduleAtFixedRate(new mainTask(), 0, 1000);
 
         isFirstLoad = false;
+
+        /*AudioManager manager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
+        if(manager.isMusicActive()) {
+            Log.d("STARTMUSIC", "1");
+        } else {
+            Log.d("STARTMUSIC", "2");
+        }*/
     }
 
     @Override
@@ -152,22 +182,6 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void buildNotification( NotificationCompat.Action action ) {
-        /*Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        });
-
-        t.start();
-
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }*/
-
-
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), AppConst.NOTIFICATION_MP_CHANNEL_ID);
         NotificationChannelSupport notificationChannelSupport = new NotificationChannelSupport();
         notificationChannelSupport.createNotificationChannel(getApplicationContext(), AppConst.NOTIFICATION_MP_CHANNEL_ID);
@@ -379,6 +393,8 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                  }
                              }
         );
+
+
     }
 
     @Override
@@ -387,6 +403,8 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         mSession.release();
         return super.onUnbind(intent);
     }
+
+
 
     private class mainTask extends TimerTask
     {
