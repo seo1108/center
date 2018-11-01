@@ -27,6 +27,8 @@ import java.util.UUID;
 
 import yonsei_church.yonsei.center.activities.MainActivity;
 import yonsei_church.yonsei.center.R;
+import yonsei_church.yonsei.center.activities.WebViewActivity;
+import yonsei_church.yonsei.center.util.Util;
 
 /**
  * Created by Administrator on 2018-07-09.
@@ -55,6 +57,7 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
 
     private void sendNotification(Bundle bundle) {
         String message = bundle.getString("content");
+        String url = "";
 
         Intent intent = null;
         if (isAppIsInBackground(this)) {
@@ -63,13 +66,18 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
             Log.d(TAG, "######################################");
             // 앱이 실행중이 아닌 경우
             // 앱 시작
+            url = bundle.getString("url");
             intent = new Intent(this, MainActivity.class);
+            intent.putExtra("URL",url);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         } else {
             // 앱이 실행중일 경우
             // 새로운 태스크로 메인액티비티 시작
+            url = bundle.getString("url");
             intent = new Intent(this, MainActivity.class);
+            intent.putExtra("URL",url);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+
         }
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
@@ -87,8 +95,8 @@ public class FirebaseMessagingService extends com.google.firebase.messaging.Fire
             notificationBuilder =
                     new NotificationCompat.Builder(this, channelId)
                             .setSmallIcon(R.drawable.ic_launcher)
-                            //.setContentTitle("연세중앙교회")
-                            //.setContentText(message)
+                            .setContentTitle("연세중앙교회")
+                            .setContentText(message)
                             .setAutoCancel(true)
                             .setSound(defaultSoundUri)
                             .setStyle(new NotificationCompat.BigPictureStyle()

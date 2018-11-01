@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -192,6 +193,7 @@ public class WebViewActivity extends AppCompatActivity {
 
         mWebView.addJavascriptInterface(new AndroidBridge(), "audio");
         mWebView.addJavascriptInterface(new MediaControlBridge(), "download");
+        mWebView.addJavascriptInterface(new UserBridge(), "user");
         mWebView.loadUrl(mUrl);
 
         mWebView.setOnTouchListener(new View.OnTouchListener() {
@@ -262,6 +264,27 @@ public class WebViewActivity extends AppCompatActivity {
                 SharedPreferences.Editor editor = pref.edit();
                 editor.putString("userSeq", userSeq);
                 editor.commit();
+            }
+
+            if ("http://app.yonsei.or.kr/".equals(url)) {if (doubleBackToExitPressedOnce) {
+                Intent intent = new Intent(WebViewActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("EXIT", true);
+                startActivity(intent);
+            } else {
+
+                WebViewActivity.this.doubleBackToExitPressedOnce = true;
+                Toast.makeText(WebViewActivity.this, "'뒤로' 버튼을 한번 더 누르시면 종료됩니다.", Toast.LENGTH_SHORT).show();
+            }
+
+                new Handler().postDelayed(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        doubleBackToExitPressedOnce=false;
+                    }
+                }, 2000);
+
             }
         }
 
@@ -440,6 +463,26 @@ public class WebViewActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    public class UserBridge {
+        @JavascriptInterface
+        public void logout() {
+            new Handler().post(new Runnable() {
+                public void run() {
+                    SharedPreferences pref = mActivity.getSharedPreferences("userInfo", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putString("userSeq", "0");
+                    editor.commit();
+                    Log.d("JAVASCRIPT", "LOGOUT");
+                }
+            });
+        }
+
+
+
+
+
     }
 
 

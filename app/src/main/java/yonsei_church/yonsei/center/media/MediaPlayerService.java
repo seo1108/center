@@ -84,26 +84,6 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         return null;
     }
 
-/*    @Override
-    public void onAudioFocusChange(int focusChange)
-    {
-        if(focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT)
-        {
-            // Pause
-            Log.d("STARTMUSIC", "1");
-        }
-        else if(focusChange == AudioManager.AUDIOFOCUS_GAIN)
-        {
-            // Resume
-            Log.d("STARTMUSIC", "2");
-        }
-        else if(focusChange == AudioManager.AUDIOFOCUS_LOSS)
-        {
-            // Stop or pause depending on your need
-            Log.d("STARTMUSIC", "3");
-        }
-    }*/
-
     /** Called when MediaPlayer is ready */
     @Override
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -123,12 +103,6 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
         isFirstLoad = false;
 
-        /*AudioManager manager = (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
-        if(manager.isMusicActive()) {
-            Log.d("STARTMUSIC", "1");
-        } else {
-            Log.d("STARTMUSIC", "2");
-        }*/
     }
 
     @Override
@@ -289,7 +263,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         mSession = new MediaSession(getApplicationContext(), "simple player session");
-        mController =new MediaController(getApplicationContext(), mSession.getSessionToken());
+        mController = new MediaController(getApplicationContext(), mSession.getSessionToken());
 
         mSession.setCallback(new MediaSession.Callback(){
                                  @Override
@@ -395,6 +369,8 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         );
 
 
+
+
     }
 
     @Override
@@ -405,6 +381,36 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
     }
 
 
+    /*private AudioManager.OnAudioFocusChangeListener focusChangeListener =
+            new AudioManager.OnAudioFocusChangeListener() {
+                public void onAudioFocusChange(int focusChange) {
+                    AudioManager am =(AudioManager)getSystemService(Context.AUDIO_SERVICE);
+                    switch (focusChange) {
+
+                        case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) :
+                            // Lower the volume while ducking.
+                            //mediaPlayer.setVolume(0.2f, 0.2f);
+                            break;
+                        case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) :
+                            //pause();
+                            break;
+
+                        case (AudioManager.AUDIOFOCUS_LOSS) :
+                            *//*stop();
+                            ComponentName component =new ComponentName(AudioPlayerActivity.this,MediaControlReceiver.class);
+                            am.unregisterMediaButtonEventReceiver(component);*//*
+                            break;
+
+                        case (AudioManager.AUDIOFOCUS_GAIN) :
+                            // Return the volume to normal and resume if paused.
+                            //mediaPlayer.setVolume(1f, 1f);
+                            //mediaPlayer.start();
+                            break;
+                        default: break;
+                    }
+                }
+            };
+*/
 
     private class mainTask extends TimerTask
     {

@@ -54,6 +54,7 @@ import yonsei_church.yonsei.center.app.DialogHelper;
 import yonsei_church.yonsei.center.app.MarketVersionChecker;
 import yonsei_church.yonsei.center.data.AppVersionModel;
 import yonsei_church.yonsei.center.data.ResponseModel;
+import yonsei_church.yonsei.center.media.AudioFocusService;
 import yonsei_church.yonsei.center.media.MediaPlayerService;
 import yonsei_church.yonsei.center.util.Util;
 
@@ -65,11 +66,13 @@ public class MainActivity extends AppCompatActivity {
     WebView mWebView;
     TextView errorVeiw;
     private Activity mContext;
+    private String mUserSeq;
 
     SQLiteDatabase contentDB = null;
 
     private static final String TAG = MainActivity.class.getSimpleName();
     Activity mActivity;
+    String mUrl = "";
 
     @Override
 
@@ -79,10 +82,10 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+
+
         // 인터넷 연결확인
         checkInternetConnection();
-
-
 
         if (getIntent().getBooleanExtra("EXIT", false)) {
             NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
@@ -101,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
         // FCM 토큰 업데이트
         try {
             String fcmToken = FirebaseInstanceId.getInstance().getToken();
+            Log.d("TOKEN_GET", fcmToken);
             requesUpdateFCMToken(fcmToken);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -113,7 +117,21 @@ public class MainActivity extends AppCompatActivity {
 
         makeContentTableIfNull();
 
+        mUrl= "";
+        if (null != getIntent().getStringExtra("URL")) {
+            mUrl =  getIntent().getStringExtra("URL");
+
+        } else {
+            mUrl = "";
+        }
+
+
+
+
         appVersionCheck();
+
+        Intent intent = new Intent(getApplicationContext(), AudioFocusService.class);
+        startService(intent);
     }
 
     public String getDeviceName() {
@@ -153,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
     public void requesUpdateFCMToken(String token) {
         // 사용자 정보획득
         SharedPreferences pref = getSharedPreferences("userInfo", MODE_PRIVATE);
-        String mseq = pref.getString("userSeq", "0");
+        mUserSeq = pref.getString("userSeq", "0");
 
         String agent = getDeviceName();
 
@@ -168,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         CommonAPI api = APIService.createService(CommonAPI.class, this);
-        api.token(mseq, mPhoneNumber, token, "A", agent,
+        api.token(mUserSeq, mPhoneNumber, token, "A", agent,
                 new StringCallback<String>() {
                     @Override
                     public void apiSuccess(String responseString) {
@@ -261,27 +279,45 @@ public class MainActivity extends AppCompatActivity {
                                         new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
-                                                Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
-                                                intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html");
-                                                startActivity(intent);
+                                                goWebview();
                                             }
                                         }
                                 );
                             }
                         } else {
-                            Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
-                            intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html");
-                            startActivity(intent);
+                            goWebview();
                         }
                     }
                     @Override
                     public void apiError(RetrofitError error) {
-                        Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
-                        intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html");
-                        startActivity(intent);
+                        goWebview();
                     }
                 }
         );
+    }
+
+    private void goWebview() {
+        String appendUrl = "";
+
+        boolean hasURL = false;
+        if (null != mUrl && mUrl.contains("http")) {
+            appendUrl = "&url=" + mUrl;
+
+            hasURL = true;
+        } else {
+            appendUrl = "";
+            hasURL = false;
+
+        }
+
+        Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
+        if (hasURL) {
+            intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html?mseq=" + mUserSeq + appendUrl);
+        } else {
+            intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html?mseq=" + mUserSeq);
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
     }
 
 

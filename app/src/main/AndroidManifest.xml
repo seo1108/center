@@ -36,7 +36,7 @@
         </activity>
 
         <activity
-            android:name=".activities.WebViewActivity"
+            android:name=".activities.WebViewActivity" android:theme="@style/Theme.AppCompat.NoActionBar"
             android:screenOrientation="portrait"></activity>
 
         <activity
@@ -82,6 +82,9 @@
         </service>
 
         <service android:name="yonsei_church.yonsei.center.media.DownloadContentService">
+        </service>
+
+        <service android:name="yonsei_church.yonsei.center.media.AudioFocusService">
         </service>
 
         <receiver
