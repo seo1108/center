@@ -130,8 +130,8 @@ public class MainActivity extends AppCompatActivity {
 
         appVersionCheck();
 
-        Intent intent = new Intent(getApplicationContext(), AudioFocusService.class);
-        startService(intent);
+       /* Intent intent = new Intent(getApplicationContext(), AudioFocusService.class);
+        startService(intent);*/
     }
 
     public String getDeviceName() {
@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html?mseq=" + mUserSeq);
         }
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
     }
 
