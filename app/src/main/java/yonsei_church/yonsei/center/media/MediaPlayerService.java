@@ -52,7 +52,7 @@ import yonsei_church.yonsei.center.receiver.NotificationDismissedReceiver;
 import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT;
 import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK;
 
-public class MediaPlayerService  extends Service implements MediaPlayer.OnPreparedListener {
+public class MediaPlayerService  extends Service implements MediaPlayer.OnPreparedListener {        // , AudioManager.OnAudioFocusChangeListener
     public static final String ACTION_PLAY = "action_play";
     public static final String ACTION_SEEK_TO = "actoin_seek_to";
     public static final String ACTION_PAUSE = "action_pause";
@@ -88,15 +88,17 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
     @Override
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void onPrepared(MediaPlayer player) {
-        Log.d("AUDIOACTIVITY1", AppConst.MEDIA_MP3_ISPLAY + "");
+        Log.d("PREPARED1", AppConst.MEDIA_MP3_ISPLAY + "" + AppConst.MEDIA_CURRENT_POSITION);
         if (AppConst.MEDIA_MP3_ISPLAY) {
             player.seekTo(AppConst.MEDIA_CURRENT_POSITION);
             player.start();
+            AppConst.MEDIA_NOTIFICATION_ISPLAY = true;
         } else {
             player.seekTo(AppConst.MEDIA_CURRENT_POSITION);
             player.start();
             mController.getTransportControls().pause();
             player.pause();
+            AppConst.MEDIA_NOTIFICATION_ISPLAY = false;
         }
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(new mainTask(), 0, 1000);
@@ -107,6 +109,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
     @Override
     public void onDestroy() {
+        AppConst.MEDIA_NOTIFICATION_ISPLAY = false;
         mMediaPlayer.stop();
         mMediaPlayer.reset();
         if (mMediaPlayer != null) mMediaPlayer.release();
@@ -171,14 +174,6 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
         PendingIntent contentPendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-/*        Bitmap bmp = null;
-        try {
-            InputStream in = new URL(mImage).openStream();
-            bmp = BitmapFactory.decodeStream(in);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
-
         Log.d("NOTIFICATION", AppConst.MEDIA_CURRENT_POSITION + "___" + AppConst.MEDIA_MP3_TITLE);
         builder.setContentTitle("연세중앙교회")
                 .setContentText(AppConst.MEDIA_MP3_TITLE)
@@ -227,7 +222,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
         //AppConst.MEDIA_MP3_URL = mAudioLink;
 
-        Log.d("NOTIFICATION", "START__" + AppConst.MEDIA_MP3_TITLE + "__" + AppConst.MEDIA_MP3_URL + "__" + AppConst.MEDIA_MP3_ISPLAY);
+        Log.d("PREPARED1", "START__" + AppConst.MEDIA_MP3_TITLE + "__" + AppConst.MEDIA_MP3_URL + "__" + AppConst.MEDIA_MP3_ISPLAY + "___" + AppConst.MEDIA_CURRENT_POSITION);
 
         if( mManager == null ) {
             if (!isServiceStart) {
@@ -262,6 +257,8 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         mMediaPlayer.setOnPreparedListener(this);
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
+
+
         mSession = new MediaSession(getApplicationContext(), "simple player session");
         mController = new MediaController(getApplicationContext(), mSession.getSessionToken());
 
@@ -272,11 +269,16 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                      Log.e( "MediaPlayerService", "onPlay " + mPosition);
                                      //buildNotification( generateAction( android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE ) );
                                      buildNotification( generateAction( R.drawable.exo_controls_pause, "Pause", ACTION_PAUSE ) );
+                                     AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                                     audioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+
                                      if (!isFirstLoad) {
                                          AppConst.MEDIA_MP3_ISPLAY = true;
                                      }
                                      mMediaPlayer.start();
+                                     AppConst.MEDIA_NOTIFICATION_ISPLAY = true;
 
+                                     //am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
                                  }
 
                                  @Override
@@ -287,6 +289,11 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                      buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
                                      AppConst.MEDIA_MP3_ISPLAY = false;
                                      mMediaPlayer.pause();
+                                     AppConst.MEDIA_NOTIFICATION_ISPLAY = false;
+
+                                     AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                                     audioManager.abandonAudioFocus(focusChangeListener);
+
                                     // length=mMediaPlayer.getCurrentPosition();
                                  }
 
@@ -345,6 +352,8 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                  public void onStop() {
                                      super.onStop();
                                      Log.e( "MediaPlayerService", "onStop");
+                                     AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                                     audioManager.abandonAudioFocus(focusChangeListener);
                                      //Stop media player here
                                      NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
                                      notificationManager.cancel( 1 );
@@ -367,15 +376,101 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                  }
                              }
         );
-
-
-
-
     }
+
+    private AudioManager.OnAudioFocusChangeListener focusChangeListener =
+            new AudioManager.OnAudioFocusChangeListener() {
+
+                @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+                @Override
+                public void onAudioFocusChange(int focusChange) {
+
+                    switch (focusChange) {
+
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK :
+                            // Lower the volume while ducking.
+                            //mediaPlayer.setVolume(0.2f, 0.2f);
+                            Log.d("MPAUDIOFOCUS", "1 " + AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK);
+                            if (mMediaPlayer.isPlaying()) {
+                                buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
+                                mMediaPlayer.pause();
+                            }
+                            break;
+                        case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) :
+                            //pause();
+                            Log.d("MPAUDIOFOCUS", "2 " + AudioManager.AUDIOFOCUS_LOSS_TRANSIENT);
+                            try {
+                                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                                    buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
+                                    mMediaPlayer.pause();
+                                }
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                            break;
+
+                        case AudioManager.AUDIOFOCUS_LOSS :
+                            /*stop();
+                            ComponentName component =new ComponentName(AudioPlayerActivity.this,MediaControlReceiver.class);
+                            am.unregisterMediaButtonEventReceiver(component);*/
+                            Log.d("MPAUDIOFOCUS", "3 " + AudioManager.AUDIOFOCUS_LOSS);
+                            try {
+                                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                                    buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
+                                    mMediaPlayer.pause();
+                                }
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+
+                            /*NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                            notificationManager.cancel(AppConst.NOTIFICATION_ID);
+                            Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                            stopService(intent);*/
+
+                           /* Intent intent1 = new Intent(getApplicationContext(), MediaPlayerService.class);
+                            intent1.setAction(MediaPlayerService.ACTION_PLAY);
+                            AppConst.MEDIA_MP3_ISPLAY = false;
+                            startService(intent1);
+*/
+                            break;
+
+                        case AudioManager.AUDIOFOCUS_GAIN :
+                            // Return the volume to normal and resume if paused.
+                            //mediaPlayer.setVolume(1f, 1f);
+                            //mediaPlayer.start();
+                            Log.d("MPAUDIOFOCUS", "4 " + AudioManager.AUDIOFOCUS_GAIN);
+                            buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
+
+                            /*NotificationManager notificationManager1 = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                            notificationManager1.cancel(AppConst.NOTIFICATION_ID);
+                            Intent intent2 = new Intent( getApplicationContext(), MediaPlayerService.class );
+                            stopService(intent2);
+
+                            Intent intent11 = new Intent(getApplicationContext(), MediaPlayerService.class);
+                            intent11.setAction(MediaPlayerService.ACTION_PLAY);
+                            AppConst.MEDIA_MP3_ISPLAY = true;
+                            startService(intent11);*/
+
+
+                            break;
+                        case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT :
+                            // Return the volume to normal and resume if paused.
+                            //mediaPlayer.setVolume(1f, 1f);
+                            //mediaPlayer.start();
+                            Log.d("MPAUDIOFOCUS", "5 " + AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+                            break;
+                        default: break;
+                    }
+                }
+            };
+
 
     @Override
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public boolean onUnbind(Intent intent) {
+        AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        audioManager.abandonAudioFocus(focusChangeListener);
         mSession.release();
         return super.onUnbind(intent);
     }
@@ -426,7 +521,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         {
             try {
                 if (null != mMediaPlayer && mMediaPlayer.isPlaying()) {
-                    Log.d("AUDIOACTIVITY", "CURRENT POSITION : " + mMediaPlayer.getCurrentPosition() + "___" + mAudioLink);
+                    Log.d("AUDIOACTIVITY", "PREPARED0 CURRENT POSITION : " + mMediaPlayer.getCurrentPosition() + "___" + mAudioLink);
                     AppConst.MEDIA_CURRENT_POSITION = mMediaPlayer.getCurrentPosition();
                 } else {
                     //Log.d("AUDIOACTIVITY", "CURRENT POSITION : STOP");

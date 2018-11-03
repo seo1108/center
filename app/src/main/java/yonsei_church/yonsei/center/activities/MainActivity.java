@@ -110,11 +110,6 @@ public class MainActivity extends AppCompatActivity {
             ex.printStackTrace();
         }
 
-        /*Intent intent = new Intent(MainActivity.this, WebViewActivity.class);
-        intent.putExtra("URL", "http://app.yonsei.or.kr/main/main.html");
-        startActivity(intent);*/
-
-
         makeContentTableIfNull();
 
         mUrl= "";
@@ -130,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
 
         appVersionCheck();
 
-       /* Intent intent = new Intent(getApplicationContext(), AudioFocusService.class);
+        /*Intent intent = new Intent(getApplicationContext(), AudioFocusService.class);
         startService(intent);*/
     }
 

@@ -6,12 +6,20 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import yonsei_church.yonsei.center.app.AppConst;
 
 public class AudioFocusService extends Service {
+    private static Timer mTimer;
+    AudioManager am;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -24,16 +32,24 @@ public class AudioFocusService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        int focusResult = am.requestAudioFocus(focusChangeListener,
+       /*int focusResult = am.requestAudioFocus(focusChangeListener,
                 AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN); // 이건 focusChangeListener를 보면 알 수 있다.
 
         if (focusResult == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) { // 오디오 써도 된다는 허락을 맡게 되면
             Log.d("AUDIOFOCUS", "5");
             //재생 / 일시정지 코드
-        }
+        } else {
+            Log.d("AUDIOFOCUS", "6");
+        }*/
+
+        AudioManager myAudioManager;
+        myAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+
+        mTimer = new Timer();
+        mTimer.scheduleAtFixedRate(new AudioFocusService.mainTask(), 0, 1000);
 
         return Service.START_NOT_STICKY;
     }
@@ -43,61 +59,39 @@ public class AudioFocusService extends Service {
         return super.onUnbind(intent);
     }
 
-    private AudioManager.OnAudioFocusChangeListener focusChangeListener =
-            new AudioManager.OnAudioFocusChangeListener() {
-                public void onAudioFocusChange(int focusChange) {
-                    AudioManager am =(AudioManager)getSystemService(Context.AUDIO_SERVICE);
-                    switch (focusChange) {
+    private class mainTask extends TimerTask
+    {
+        public void run()
+        {
+            currentPositionHandler.sendEmptyMessage(0);
+        }
+    }
+    private final Handler currentPositionHandler = new Handler()
+    {
+        @Override
+        public void handleMessage(Message msg)
+        {
+            try {
+                Log.d("AudioFocusService", AppConst.MEDIA_NOTIFICATION_ISPLAY + "____" + am.isMusicActive() + "");
+                try {
+                    if (AppConst.MEDIA_NOTIFICATION_ISPLAY && am.isMusicActive()) {
+                        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                        notificationManager.cancel(AppConst.NOTIFICATION_ID);
+                        Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+                        stopService(intent);
 
-                        case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) :
-                            // Lower the volume while ducking.
-                            //mediaPlayer.setVolume(0.2f, 0.2f);
-                            Log.d("AUDIOFOCUS", "1");
-                            break;
-                        case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) :
-                            //pause();
-                            Log.d("AUDIOFOCUS", "2");
-                            break;
-
-                        case (AudioManager.AUDIOFOCUS_LOSS) :
-                            /*stop();
-                            ComponentName component =new ComponentName(AudioPlayerActivity.this,MediaControlReceiver.class);
-                            am.unregisterMediaButtonEventReceiver(component);*/
-                            Log.d("AUDIOFOCUS", "3");
-
-                            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                            notificationManager.cancel(AppConst.NOTIFICATION_ID);
-                            Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
-                            stopService(intent);
-
-                            Intent intent1 = new Intent(getApplicationContext(), MediaPlayerService.class);
-                            intent1.setAction(MediaPlayerService.ACTION_PLAY);
-                            AppConst.MEDIA_MP3_ISPLAY = false;
-                            startService(intent1);
-
-                            break;
-
-                        case (AudioManager.AUDIOFOCUS_GAIN) :
-                            // Return the volume to normal and resume if paused.
-                            //mediaPlayer.setVolume(1f, 1f);
-                            //mediaPlayer.start();
-                            Log.d("AUDIOFOCUS", "4");
-
-
-                            NotificationManager notificationManager1 = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-                            notificationManager1.cancel(AppConst.NOTIFICATION_ID);
-                            Intent intent2 = new Intent( getApplicationContext(), MediaPlayerService.class );
-                            stopService(intent2);
-
-                            Intent intent11 = new Intent(getApplicationContext(), MediaPlayerService.class);
-                            intent11.setAction(MediaPlayerService.ACTION_PLAY);
-                            AppConst.MEDIA_MP3_ISPLAY = true;
-                            startService(intent11);
-
-
-                            break;
-                        default: break;
+                        Intent intent1 = new Intent(getApplicationContext(), MediaPlayerService.class);
+                        intent1.setAction(MediaPlayerService.ACTION_PLAY);
+                        AppConst.MEDIA_MP3_ISPLAY = false;
+                        startService(intent1);
                     }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
-            };
+            } catch (Exception ex) {
+                Log.d("AudioFocusService", ex.toString());
+
+            }
+        }
+    };
 }

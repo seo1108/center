@@ -11,9 +11,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -196,7 +199,7 @@ public class WebViewActivity extends AppCompatActivity {
         mWebView.addJavascriptInterface(new UserBridge(), "user");
         mWebView.loadUrl(mUrl);
 
-        mWebView.setOnTouchListener(new View.OnTouchListener() {
+        /*mWebView.setOnTouchListener(new View.OnTouchListener() {
 
             public boolean onTouch(View v, MotionEvent event) {
                 WebView.HitTestResult hr = ((WebView)v).getHitTestResult();
@@ -204,7 +207,7 @@ public class WebViewActivity extends AppCompatActivity {
                 Log.i("TOUCHTOUCH", "getExtra = "+ hr.getExtra() + " Type=" + hr.getType());
                 return false;
             }
-        });
+        });*/
 
         findViewById(R.id.btn_download).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -227,7 +230,6 @@ public class WebViewActivity extends AppCompatActivity {
                 startService(intent);
             }
         });
-
     }
 
     class WebClient extends WebViewClient {
@@ -341,6 +343,7 @@ public class WebViewActivity extends AppCompatActivity {
         }
     };
 
+
     public class AndroidBridge {
         @JavascriptInterface
         public void send(final String arg) {
@@ -380,6 +383,8 @@ public class WebViewActivity extends AppCompatActivity {
             });
         }
     }
+
+
 
     public class MediaControlBridge {
         @JavascriptInterface

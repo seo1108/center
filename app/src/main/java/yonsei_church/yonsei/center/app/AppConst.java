@@ -18,4 +18,6 @@ public class AppConst {
     public static String MEDIA_MP3_TITLE = "";
     public static String MEDIA_MP3_IMAGE = "";
     public static boolean MEDIA_MP3_ISPLAY = true;
+
+    public static boolean MEDIA_NOTIFICATION_ISPLAY = false;
 }

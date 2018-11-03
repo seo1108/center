@@ -84,7 +84,7 @@
         <service android:name="yonsei_church.yonsei.center.media.DownloadContentService">
         </service>
 
-       <!-- <service android:name="yonsei_church.yonsei.center.media.AudioFocusService">
+<!--        <service android:name="yonsei_church.yonsei.center.media.AudioFocusService">
         </service>-->
 
         <receiver
