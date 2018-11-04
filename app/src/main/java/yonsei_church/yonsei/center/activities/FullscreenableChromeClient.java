@@ -2,14 +2,17 @@ package yonsei_church.yonsei.center.activities;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
+import android.webkit.WebView;
 import android.widget.FrameLayout;
 
 public class FullscreenableChromeClient extends WebChromeClient {
@@ -23,6 +26,15 @@ public class FullscreenableChromeClient extends WebChromeClient {
 
     public FullscreenableChromeClient(Activity activity) {
         this.mActivity = activity;
+        /*mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);*/
+
+
+    }
+
+    @Override
+    public void onCloseWindow(WebView window) {
+        Log.d("CLOSECLOSE", "CLOSE");
     }
 
     @Override
@@ -40,10 +52,11 @@ public class FullscreenableChromeClient extends WebChromeClient {
             mFullscreenContainer.addView(view, COVER_SCREEN_PARAMS);
             decor.addView(mFullscreenContainer, COVER_SCREEN_PARAMS);
             mCustomView = view;
-            setFullscreen(true);
+            //setFullscreen(true);
             mCustomViewCallback = callback;
-//          mActivity.setRequestedOrientation(requestedOrientation);
 
+//          mActivity.setRequestedOrientation(requestedOrientation);
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
 
         super.onShowCustomView(view, callback);
@@ -68,12 +81,11 @@ public class FullscreenableChromeClient extends WebChromeClient {
         mCustomView = null;
         mCustomViewCallback.onCustomViewHidden();
         mActivity.setRequestedOrientation(mOriginalOrientation);
-
     }
 
     private void setFullscreen(boolean enabled) {
 
-        Window win = mActivity.getWindow();
+       Window win = mActivity.getWindow();
         WindowManager.LayoutParams winParams = win.getAttributes();
         final int bits = WindowManager.LayoutParams.FLAG_FULLSCREEN;
         if (enabled) {

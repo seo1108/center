@@ -36,7 +36,9 @@
         </activity>
 
         <activity
-            android:name=".activities.WebViewActivity" android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:name=".activities.WebViewActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
             android:screenOrientation="portrait"></activity>
 
         <activity

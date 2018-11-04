@@ -97,9 +97,9 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        BackgroundThread thread = new BackgroundThread();
+/*        BackgroundThread thread = new BackgroundThread();
         thread.setDaemon(true);
-        thread.start();
+        thread.start();*/
 
         // FCM 토큰 업데이트
         try {
@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private final DeviceVersionCheckHandler deviceVersionCheckHandler = new DeviceVersionCheckHandler(this);
+    /*private final DeviceVersionCheckHandler deviceVersionCheckHandler = new DeviceVersionCheckHandler(this);
 
     // 핸들러 객체 만들기
     private static class DeviceVersionCheckHandler extends Handler{
@@ -221,9 +221,9 @@ public class MainActivity extends AppCompatActivity {
                 // 핸들메세지로 결과값 전달
             }
         }
-    }
+    }*/
 
-    public class BackgroundThread extends Thread {
+    /*public class BackgroundThread extends Thread {
         @Override
         public void run() {
             // 패키지 네임 전달
@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
             deviceVersionCheckHandler.sendMessage(deviceVersionCheckHandler.obtainMessage());
             // 핸들러로 메세지 전달
         }
-    }
+    }*/
 
     private void appVersionCheck(){
         CommonAPI api = APIService.createService(CommonAPI.class, this);
@@ -317,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void handleMessage(Message msg) {
+    /*private void handleMessage(Message msg) {
         //핸들러에서 넘어온 값 체크
         if(TextUtils.isEmpty(storeVersion)) {
             Toast.makeText(getApplicationContext(), " deviceVersion : " + deviceVersion, Toast.LENGTH_LONG).show();
@@ -346,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
-    }
+    }*/
 
     public void makeContentTableIfNull() {
         try {

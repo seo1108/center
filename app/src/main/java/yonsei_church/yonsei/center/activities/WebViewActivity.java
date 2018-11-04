@@ -194,6 +194,7 @@ public class WebViewActivity extends AppCompatActivity {
             }
         });
 
+        mWebView.setWebChromeClient(new FullscreenableChromeClient(WebViewActivity.this));
         mWebView.addJavascriptInterface(new AndroidBridge(), "audio");
         mWebView.addJavascriptInterface(new MediaControlBridge(), "download");
         mWebView.addJavascriptInterface(new UserBridge(), "user");
