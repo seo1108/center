@@ -8,7 +8,9 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.PowerManager;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
@@ -35,6 +37,7 @@ import yonsei_church.yonsei.center.media.MediaPlayerService;
 
 public class AudioActivity extends AppCompatActivity implements Runnable { //, MediaPlayer.OnPreparedListener
     MediaPlayer mediaPlayer = new MediaPlayer();
+
     SeekBar seekBar;
     //SeekBar seekVolumn;
     ImageView imageView;
@@ -54,6 +57,8 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
     private String mTotalDuration;
 
     private boolean isExit = false;
+
+    WifiManager.WifiLock wifiLock;
 
     private String defaultImage = "https://dispatch.cdnser.be/wp-content/uploads/2017/12/20171227221249_1.png";
 
@@ -127,9 +132,15 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
         //initPlay();
         fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, R.drawable.baseline_pause_white_24));
         try {
+            this.mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            this.mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
             this.mediaPlayer.setDataSource(AppConst.MEDIA_MP3_URL);
             this.mediaPlayer.prepare();
 
+            wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
+                    .createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
+
+            wifiLock.acquire();
             //this.mediaPlayer.setOnPreparedListener(this);
 
 
@@ -223,17 +234,21 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
 
         seekBarHint.setVisibility(View.GONE);
 
+        // 롤리팝 이후 버전일 경우
+        if (Build.VERSION.SDK_INT >= 21 ){
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(AppConst.NOTIFICATION_ID);
+            Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+            stopService(intent);
+        }
 
-        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancel(AppConst.NOTIFICATION_ID);
-        Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
-        stopService(intent);
 
         //this.mediaPlayer.setVolume(0.5f, 0.5f);
 
 
         if (!AppConst.MEDIA_MP3_ISPLAY) {
             this.mediaPlayer.pause();
+
             fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, R.drawable.baseline_play_arrow_white_24));
         }
 
@@ -276,7 +291,7 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
     private AudioManager.OnAudioFocusChangeListener focusChangeListener =
             new AudioManager.OnAudioFocusChangeListener() {
 
-                @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+
                 @Override
                 public void onAudioFocusChange(int focusChange) {
 
@@ -476,17 +491,23 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
     protected void onDestroy() {
         super.onDestroy();
        // if (!isExit) {
-            Log.d("PREPARED8", AppConst.MEDIA_CURRENT_POSITION + "____" +  this.mediaPlayer.getCurrentPosition());
+        Log.d("PREPARED8", AppConst.MEDIA_CURRENT_POSITION + "____" +  this.mediaPlayer.getCurrentPosition());
 
+        // 롤리팝 이후 버전일 경우
+        if (Build.VERSION.SDK_INT >= 21 ){
             Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
             intent.setAction(MediaPlayerService.ACTION_PLAY);
 
             AppConst.MEDIA_CURRENT_POSITION = this.mediaPlayer.getCurrentPosition();
             //AppConst.MEDIA_CUURECT_POSITION = 0;
             startService(intent);
+        }
 
-            AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            audioManager.abandonAudioFocus(focusChangeListener);
+
+        AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        audioManager.abandonAudioFocus(focusChangeListener);
+
+
        // }
 
         clearMediaPlayer();
@@ -494,6 +515,8 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
 
     private void clearMediaPlayer() {
         if (null != this.mediaPlayer) {
+
+            if (null != wifiLock) wifiLock.release();
             this.mediaPlayer.stop();
             this.mediaPlayer.release();
             this.mediaPlayer = null;

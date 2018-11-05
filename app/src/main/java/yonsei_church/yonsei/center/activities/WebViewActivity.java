@@ -64,7 +64,7 @@ public class WebViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_webview);
 
         // Google Analytics
-        GlobalApplication application = (GlobalApplication) getApplication();
+//        GlobalApplication application = (GlobalApplication) getApplication();
 
         mUrl = getIntent().getStringExtra("URL");
         errorVeiw = (TextView) findViewById(R.id.net_error_view);
@@ -350,13 +350,7 @@ public class WebViewActivity extends AppCompatActivity {
         public void send(final String arg) {
             new Handler().post(new Runnable() {
                 public void run() {
-                    try {
-                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
-                        stopService(intent);
-                    } catch (Exception ex) {
-
-                    }
-
+                    Log.d("OSVERSION" , Build.VERSION.SDK_INT + "");
                     Log.d("JAVASCRIPT", Util.urlDecode(arg));
                     String[] args = Util.urlDecode(arg).split("\\^");
                     String mediaUrl = args[0];
@@ -365,21 +359,35 @@ public class WebViewActivity extends AppCompatActivity {
                     try {
                         mediaImage = Util.checkNull(args[2], "");
                     } catch (Exception ex) {
-                        
+
                     }
-
-
-
                     Log.d("JAVASCRIPT", mediaUrl + "__" + mediaTitle + "__" + mediaImage);
                     AppConst.MEDIA_CURRENT_POSITION = 0;
                     AppConst.MEDIA_MP3_URL = mediaUrl;
                     AppConst.MEDIA_MP3_TITLE = mediaTitle;
                     AppConst.MEDIA_MP3_IMAGE = mediaImage;
                     AppConst.MEDIA_MP3_ISPLAY = true;
-                    Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
-                    intent.setAction( MediaPlayerService.ACTION_PLAY );
 
-                    startService(intent);
+                    if(Build.VERSION.SDK_INT < 21 ){
+                        // Do some stuff
+                        Intent intent = new Intent( WebViewActivity.this, AudioActivity.class );
+                        startActivity(intent);
+                    }
+                    else {
+                        try {
+                            Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                            stopService(intent);
+                        } catch (Exception ex) {
+
+                        }
+
+
+                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                        intent.setAction( MediaPlayerService.ACTION_PLAY );
+
+                        startService(intent);
+                    }
+
                 }
             });
         }

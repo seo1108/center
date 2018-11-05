@@ -18,6 +18,7 @@ import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -79,6 +80,8 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
     private static Timer mTimer;
 
+    WifiManager.WifiLock wifiLock;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -113,7 +116,9 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         mMediaPlayer.stop();
         mMediaPlayer.reset();
         if (mMediaPlayer != null) mMediaPlayer.release();
+
         try {
+            wifiLock.release();
             mTimer.cancel();
             mTimer = null;
         } catch (Exception ex) {
@@ -257,6 +262,11 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         mMediaPlayer.setOnPreparedListener(this);
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
+       wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
+                .createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
+
+        wifiLock.acquire();
+
 
 
         mSession = new MediaSession(getApplicationContext(), "simple player session");
@@ -289,6 +299,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                      buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
                                      AppConst.MEDIA_MP3_ISPLAY = false;
                                      mMediaPlayer.pause();
+                                     wifiLock.acquire();
                                      AppConst.MEDIA_NOTIFICATION_ISPLAY = false;
 
                                      AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
@@ -394,6 +405,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                             if (mMediaPlayer.isPlaying()) {
                                 buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
                                 mMediaPlayer.pause();
+                                wifiLock.acquire();
                             }
                             break;
                         case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) :
@@ -403,6 +415,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                 if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                                     buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
                                     mMediaPlayer.pause();
+                                    wifiLock.acquire();
                                 }
                             } catch (Exception ex) {
                                 ex.printStackTrace();
@@ -418,6 +431,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                 if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                                     buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
                                     mMediaPlayer.pause();
+                                    wifiLock.acquire();
                                 }
                             } catch (Exception ex) {
                                 ex.printStackTrace();
