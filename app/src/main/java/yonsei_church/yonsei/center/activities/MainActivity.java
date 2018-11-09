@@ -54,7 +54,6 @@ import yonsei_church.yonsei.center.app.DialogHelper;
 import yonsei_church.yonsei.center.app.MarketVersionChecker;
 import yonsei_church.yonsei.center.data.AppVersionModel;
 import yonsei_church.yonsei.center.data.ResponseModel;
-import yonsei_church.yonsei.center.media.AudioFocusService;
 import yonsei_church.yonsei.center.media.MediaPlayerService;
 import yonsei_church.yonsei.center.util.Util;
 

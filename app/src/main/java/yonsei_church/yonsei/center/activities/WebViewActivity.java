@@ -144,7 +144,8 @@ public class WebViewActivity extends AppCompatActivity {
         webSettings.setUseWideViewPort(true);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setAllowContentAccess(true);
-        mWebView.setLayerType(View.LAYER_TYPE_NONE, null);
+        webSettings.setAllowFileAccess(true);
+        //mWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         //webSettings.setUserAgentString("Mozilla/5.0 (Linux; Android 4.4; Nexus 5 Build/_BuildID_) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36");
 
         /*mWebView.setWebChromeClient(new WebChromeClient() {
@@ -373,8 +374,14 @@ public class WebViewActivity extends AppCompatActivity {
                     AppConst.MEDIA_MP3_URL = mediaUrl;
                     AppConst.MEDIA_MP3_TITLE = mediaTitle;
                     AppConst.MEDIA_MP3_IMAGE = mediaImage;
-                    AppConst.MEDIA_MP3_ISPLAY = true;
+                    //AppConst.MEDIA_MP3_ISPLAY = true;
 
+                    try {
+                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                        stopService(intent);
+                    } catch (Exception ex) {
+
+                    }
                     Intent intent = new Intent( WebViewActivity.this, AudioActivity.class );
                     startActivity(intent);
 
@@ -456,6 +463,12 @@ public class WebViewActivity extends AppCompatActivity {
         public void player() {
             new Handler().post(new Runnable() {
                 public void run() {
+                    try {
+                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                        stopService(intent);
+                    } catch (Exception ex) {
+
+                    }
                     Intent intent = new Intent( WebViewActivity.this, AudioActivity.class );
                     startActivity(intent);
 
@@ -505,7 +518,7 @@ public class WebViewActivity extends AppCompatActivity {
 
                         Intent intent1 = new Intent(getApplicationContext(), MediaPlayerService.class);
                         intent1.setAction(MediaPlayerService.ACTION_PLAY);
-                        AppConst.MEDIA_MP3_ISPLAY = false;
+                        //AppConst.MEDIA_MP3_ISPLAY = false;
                         startService(intent1);
                     } catch (Exception ex) {
 

@@ -82,6 +82,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
     private static Timer mTimer;
 
     WifiManager.WifiLock wifiLock;
+    PowerManager.WakeLock wakeLock;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -92,18 +93,15 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
     @Override
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void onPrepared(MediaPlayer player) {
-        Log.d("PREPARED1", AppConst.MEDIA_MP3_ISPLAY + "" + AppConst.MEDIA_CURRENT_POSITION);
-        if (AppConst.MEDIA_MP3_ISPLAY) {
-            player.seekTo(AppConst.MEDIA_CURRENT_POSITION);
-            player.start();
-            AppConst.MEDIA_NOTIFICATION_ISPLAY = true;
-        } else {
-            player.seekTo(AppConst.MEDIA_CURRENT_POSITION);
-            player.start();
-            mController.getTransportControls().pause();
-            player.pause();
-            AppConst.MEDIA_NOTIFICATION_ISPLAY = false;
-        }
+        player.seekTo(AppConst.MEDIA_CURRENT_POSITION);
+
+        AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        audioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+
+
+        player.start();
+        AppConst.MEDIA_NOTIFICATION_ISPLAY = true;
+
         mTimer = new Timer();
         mTimer.scheduleAtFixedRate(new mainTask(), 0, 1000);
 
@@ -119,6 +117,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         if (mMediaPlayer != null) mMediaPlayer.release();
 
         try {
+            if (!wakeLock.isHeld()) wakeLock.acquire();
             if (null != wifiLock) wifiLock.release();
             mTimer.cancel();
             mTimer = null;
@@ -220,7 +219,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
         //AppConst.MEDIA_MP3_URL = mAudioLink;
 
-        Log.d("PREPARED1", "START__" + AppConst.MEDIA_MP3_TITLE + "__" + AppConst.MEDIA_MP3_URL + "__" + AppConst.MEDIA_MP3_ISPLAY + "___" + AppConst.MEDIA_CURRENT_POSITION);
+        //Log.d("PREPARED1", "START__" + AppConst.MEDIA_MP3_TITLE + "__" + AppConst.MEDIA_MP3_URL + "__" + AppConst.MEDIA_MP3_ISPLAY + "___" + AppConst.MEDIA_CURRENT_POSITION);
 
         if( mManager == null ) {
             if (!isServiceStart) {
@@ -256,10 +255,15 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         mMediaPlayer.setOnPreparedListener(this);
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                "MyApp::MyWakelockTag");
+        if (!wakeLock.isHeld()) wakeLock.acquire();
+
        wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "mylock");
 
-        wifiLock.acquire();
+        if (!wifiLock.isHeld()) wifiLock.acquire();
 
 
 
@@ -276,9 +280,9 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                      AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
                                      audioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
-                                     if (!isFirstLoad) {
+                                     /*if (!isFirstLoad) {
                                          AppConst.MEDIA_MP3_ISPLAY = true;
-                                     }
+                                     }*/
                                      mMediaPlayer.start();
                                      AppConst.MEDIA_NOTIFICATION_ISPLAY = true;
 
@@ -291,13 +295,12 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                      Log.e( "MediaPlayerService", "onPause");
                                      //buildNotification(generateAction(android.R.drawable.ic_media_play, "Play", ACTION_PLAY));
                                      buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
-                                     AppConst.MEDIA_MP3_ISPLAY = false;
+                                     //AppConst.MEDIA_MP3_ISPLAY = false;
                                      mMediaPlayer.pause();
-                                     wifiLock.acquire();
+                                     if (!wifiLock.isHeld()) wifiLock.acquire();
                                      AppConst.MEDIA_NOTIFICATION_ISPLAY = false;
 
-                                     AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-                                     audioManager.abandonAudioFocus(focusChangeListener);
+
 
                                     // length=mMediaPlayer.getCurrentPosition();
                                  }
@@ -399,7 +402,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                             if (mMediaPlayer.isPlaying()) {
                                 buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
                                 mMediaPlayer.pause();
-                                wifiLock.acquire();
+                                if (!wifiLock.isHeld()) wifiLock.acquire();
                             }
                             break;
                         case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) :
@@ -409,7 +412,11 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                 if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                                     buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
                                     mMediaPlayer.pause();
-                                    wifiLock.acquire();
+
+                                    AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                                    audioManager.abandonAudioFocus(focusChangeListener);
+
+                                    if (!wifiLock.isHeld()) wifiLock.acquire();
                                 }
                             } catch (Exception ex) {
                                 ex.printStackTrace();
@@ -422,11 +429,24 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                             am.unregisterMediaButtonEventReceiver(component);*/
                             Log.d("MPAUDIOFOCUS", "3 " + AudioManager.AUDIOFOCUS_LOSS);
                             try {
-                                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                                if (mMediaPlayer != null) {
                                     buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
                                     mMediaPlayer.pause();
-                                    wifiLock.acquire();
+
+                                    AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                                    audioManager.abandonAudioFocus(focusChangeListener);
+
+                                    if (!wifiLock.isHeld()) wifiLock.acquire();
                                 }
+                                /*if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                                    buildNotification(generateAction(R.drawable.exo_controls_play, "Play", ACTION_PLAY));
+                                    mMediaPlayer.pause();
+
+                                    AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                                    audioManager.abandonAudioFocus(focusChangeListener);
+
+                                    if (!wifiLock.isHeld()) wifiLock.acquire();
+                                }*/
                             } catch (Exception ex) {
                                 ex.printStackTrace();
                             }
@@ -479,6 +499,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
     public boolean onUnbind(Intent intent) {
         AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         audioManager.abandonAudioFocus(focusChangeListener);
+
         mSession.release();
         return super.onUnbind(intent);
     }

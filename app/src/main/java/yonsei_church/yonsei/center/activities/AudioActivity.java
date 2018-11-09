@@ -35,6 +35,7 @@ import java.io.IOException;
 import yonsei_church.yonsei.center.R;
 import yonsei_church.yonsei.center.app.AppConst;
 import yonsei_church.yonsei.center.media.MediaPlayerService;
+import yonsei_church.yonsei.center.receiver.NotificationDismissedReceiver;
 
 public class AudioActivity extends AppCompatActivity implements Runnable { //, MediaPlayer.OnPreparedListener
     MediaPlayer mediaPlayer = new MediaPlayer();
@@ -60,8 +61,7 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
     private boolean isExit = false;
 
     WifiManager.WifiLock wifiLock;
-
-    private String defaultImage = "https://dispatch.cdnser.be/wp-content/uploads/2017/12/20171227221249_1.png";
+    PowerManager.WakeLock wakeLock;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +71,20 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio);
 
+        // 롤리팝 이후 버전일 경우
+        if (Build.VERSION.SDK_INT >= 21 ){
+            try {
+                /*Intent intent = new Intent(getApplicationContext(), NotificationDismissedReceiver.class);
+                intent.putExtra("notificationId", AppConst.NOTIFICATION_MP_CHANNEL_ID);
+*/
+                NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.cancel(AppConst.NOTIFICATION_ID);
+                Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+                stopService(intent);
+            } catch (Exception ex) {
 
+            }
+        }
 
         mMediaUrl = getIntent().getStringExtra("mediaUrl");
         mTitle = getIntent().getStringExtra("title");
@@ -86,8 +99,7 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
 
         //wasPlaying = AppConst.MEDIA_MP3_ISPLAY;
 
-        Log.d("AUDIOACTIVITY" , "position : " + AppConst.MEDIA_MP3_ISPLAY);
-        fab = findViewById(R.id.button);
+       fab = findViewById(R.id.button);
         //fab.setBackgroundColor(Color.TRANSPARENT);
         //fab.setAlpha(0.25f);
         //fab.setRippleColor(getResources().getColor(R.color.playButton));
@@ -106,19 +118,21 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
         fabExit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                audioManager.abandonAudioFocus(focusChangeListener);
+                AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
+                clearMediaPlayer();
+                focusChangeListener = null;
                 // 롤리팝 이후 버전일 경우
                 if (Build.VERSION.SDK_INT >= 21 ){
                     Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
                     intent.setAction(MediaPlayerService.ACTION_PLAY);
 
-                    AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
+
                     startService(intent);
                 }
 
-                AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-                audioManager.abandonAudioFocus(focusChangeListener);
 
-                clearMediaPlayer();
 
                 finish();
             }
@@ -141,19 +155,21 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
         txtClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                audioManager.abandonAudioFocus(focusChangeListener);
+                AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
+                clearMediaPlayer();
+                focusChangeListener = null;
                 // 롤리팝 이후 버전일 경우
                 if (Build.VERSION.SDK_INT >= 21 ){
                     Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
                     intent.setAction(MediaPlayerService.ACTION_PLAY);
 
-                    AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
+
                     startService(intent);
                 }
 
-                AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-                audioManager.abandonAudioFocus(focusChangeListener);
 
-                clearMediaPlayer();
 
                 finish();
             }
@@ -162,18 +178,25 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
         fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, R.drawable.baseline_pause_white_24));
         try {
             this.mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            this.mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+            this.mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK );
             this.mediaPlayer.setDataSource(AppConst.MEDIA_MP3_URL);
             this.mediaPlayer.prepare();
+
+            PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                    "MyApp::MyWakelockTag");
+            if (!wakeLock.isHeld()) wakeLock.acquire();
 
             wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                     .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "mylock");
 
-            wifiLock.acquire();
+            if (!wifiLock.isHeld()) wifiLock.acquire();
             //this.mediaPlayer.setOnPreparedListener(this);
 
-
             AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+            audioManager.abandonAudioFocus(focusChangeListener);
+
+            audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
             audioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -266,23 +289,12 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
 
         seekBarHint.setVisibility(View.GONE);
 
-        // 롤리팝 이후 버전일 경우
-        if (Build.VERSION.SDK_INT >= 21 ){
-            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.cancel(AppConst.NOTIFICATION_ID);
-            Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
-            stopService(intent);
-        }
+
 
 
         //this.mediaPlayer.setVolume(0.5f, 0.5f);
 
 
-        if (!AppConst.MEDIA_MP3_ISPLAY) {
-            this.mediaPlayer.pause();
-
-            fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, R.drawable.baseline_play_arrow_white_24));
-        }
 
         this.mediaPlayer.setLooping(false);
         //seekBar.setMax(this.mediaPlayer.getDuration());
@@ -332,28 +344,44 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
                         case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK :
                             // Lower the volume while ducking.
                             //mediaPlayer.setVolume(0.2f, 0.2f);
-                            Log.d("MPAUDIOFOCUS", "1 " + AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK);
+                            Log.d("MPAUDIOFOCUS1", "1 " + AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK);
                             if (mediaPlayer.isPlaying()) {
                                 fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, R.drawable.baseline_play_arrow_white_24));
                                 mediaPlayer.pause();
+
                             }
                             break;
                         case (AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) :
                             //pause();
-                            Log.d("MPAUDIOFOCUS", "2 " + AudioManager.AUDIOFOCUS_LOSS_TRANSIENT);
+                            Log.d("MPAUDIOFOCUS1", "2 " + AudioManager.AUDIOFOCUS_LOSS_TRANSIENT);
                             fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, R.drawable.baseline_play_arrow_white_48));
                             mediaPlayer.pause();
+
+                            AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                            audioManager.abandonAudioFocus(focusChangeListener);
+
                             break;
 
                         case AudioManager.AUDIOFOCUS_LOSS :
                             /*stop();
                             ComponentName component =new ComponentName(AudioPlayerActivity.this,MediaControlReceiver.class);
                             am.unregisterMediaButtonEventReceiver(component);*/
-                            Log.d("MPAUDIOFOCUS", "3 " + AudioManager.AUDIOFOCUS_LOSS);
+                            Log.d("MPAUDIOFOCUS1", "3 " + AudioManager.AUDIOFOCUS_LOSS);
                             try {
-                                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                                /*if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                                     fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, R.drawable.baseline_play_arrow_white_24));
                                     mediaPlayer.pause();
+
+                                    audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                                    audioManager.abandonAudioFocus(focusChangeListener);
+                                }*/
+                                if (mediaPlayer != null) {
+                                    fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, R.drawable.baseline_play_arrow_white_24));
+                                    mediaPlayer.pause();
+
+                                    AudioManager audioManager1 = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                                    audioManager1.abandonAudioFocus(focusChangeListener);
+
                                 }
                             } catch (Exception ex) {
                                 ex.printStackTrace();
@@ -375,7 +403,7 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
                             // Return the volume to normal and resume if paused.
                             //mediaPlayer.setVolume(1f, 1f);
                             //mediaPlayer.start();
-                            Log.d("MPAUDIOFOCUS", "4 " + AudioManager.AUDIOFOCUS_GAIN);
+                            Log.d("MPAUDIOFOCUS1", "4 " + AudioManager.AUDIOFOCUS_GAIN);
 
                             /*NotificationManager notificationManager1 = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
                             notificationManager1.cancel(AppConst.NOTIFICATION_ID);
@@ -393,7 +421,7 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
                             // Return the volume to normal and resume if paused.
                             //mediaPlayer.setVolume(1f, 1f);
                             //mediaPlayer.start();
-                            Log.d("MPAUDIOFOCUS", "5 " + AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+                            Log.d("MPAUDIOFOCUS1", "5 " + AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
                             break;
                         default: break;
                     }
@@ -463,20 +491,25 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
     public void playSong() {
         try {
 
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.cancel(AppConst.NOTIFICATION_ID);
+
             if (this.mediaPlayer != null && this.mediaPlayer.isPlaying()) {
                 /*clearMediaPlayer();
                 seekBar.setProgress(0);
                 wasPlaying = true;
                 fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, android.R.drawable.ic_media_play));*/
                 this.mediaPlayer.pause();
-                AppConst.MEDIA_MP3_ISPLAY = false;
+
                 fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, R.drawable.baseline_play_arrow_white_24));
-                Log.d("AUDIOACTIVITY", "PLAYSONG 1 " + AppConst.MEDIA_MP3_ISPLAY);
+
             } else if (this.mediaPlayer != null && !this.mediaPlayer.isPlaying()) {
-                AppConst.MEDIA_MP3_ISPLAY = true;
+                //AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                //audioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+
                 this.mediaPlayer.start();
                 fab.setImageDrawable(ContextCompat.getDrawable(AudioActivity.this, R.drawable.baseline_pause_white_24));
-                Log.d("AUDIOACTIVITY", "PLAYSONG 2 " + AppConst.MEDIA_MP3_ISPLAY);
+
             }
 
 
@@ -523,19 +556,21 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        audioManager.abandonAudioFocus(focusChangeListener);
+        AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
+        clearMediaPlayer();
+        focusChangeListener = null;
         // 롤리팝 이후 버전일 경우
         if (Build.VERSION.SDK_INT >= 21 ){
             Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
             intent.setAction(MediaPlayerService.ACTION_PLAY);
 
-            AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
+
             startService(intent);
         }
 
-        AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-        audioManager.abandonAudioFocus(focusChangeListener);
 
-        clearMediaPlayer();
 
         finish();
     }
@@ -553,6 +588,7 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
         if (null != this.mediaPlayer) {
 
             if (null != wifiLock) wifiLock.release();
+            if (!wakeLock.isHeld()) wakeLock.release();
             this.mediaPlayer.stop();
             this.mediaPlayer.release();
             this.mediaPlayer = null;
