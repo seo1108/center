@@ -361,7 +361,7 @@ public class WebViewActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), DownloadContentService.class);
             intent.putExtra("url", "https://www.radiantmediaplayer.com/media/bbb-360p.mp4");
             intent.putExtra("title", "동영상다운로드테스트.mp4");
-            startService(intent);
+            startForegroundService(intent);
         }
 
         @Override
@@ -572,7 +572,13 @@ public class WebViewActivity extends AppCompatActivity {
                         Intent intent1 = new Intent(getApplicationContext(), MediaPlayerService.class);
                         intent1.setAction(MediaPlayerService.ACTION_PLAY);
                         //AppConst.MEDIA_MP3_ISPLAY = false;
-                        startService(intent1);
+                        if (Build.VERSION.SDK_INT >= 26) {
+                            startForegroundService(intent1);
+                        }
+                        else {
+                            startService(intent1);
+                        }
+
                     } catch (Exception ex) {
 
                     }

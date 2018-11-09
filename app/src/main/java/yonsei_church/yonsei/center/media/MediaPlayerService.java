@@ -54,7 +54,7 @@ import yonsei_church.yonsei.center.receiver.NotificationDismissedReceiver;
 import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT;
 import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK;
 
-public class MediaPlayerService  extends Service implements MediaPlayer.OnPreparedListener {        // , AudioManager.OnAudioFocusChangeListener
+public class MediaPlayerService  extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {        // , AudioManager.OnAudioFocusChangeListener
     public static final String ACTION_PLAY = "action_play";
     public static final String ACTION_SEEK_TO = "action_seek_to";
     public static final String ACTION_PAUSE = "action_pause";
@@ -106,6 +106,10 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
         isFirstLoad = false;
 
+    }
+
+    public void onCompletion(MediaPlayer _mediaPlayer) {
+        stopSelf();
     }
 
     @Override
@@ -192,8 +196,9 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         int[] actionsViewIndexs = new int[]{0, 1, 2};
 
         builder.setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(actionsViewIndexs));
-        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.notify(AppConst.NOTIFICATION_ID, builder.build());
+        /*notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(AppConst.NOTIFICATION_ID, builder.build());*/
+        startForeground(AppConst.NOTIFICATION_ID, builder.build());
     }
 
     private PendingIntent createOnDismissedIntent(Context context, int notificationId) {
