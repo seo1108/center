@@ -17,6 +17,8 @@ public class AppConst {
     public static String MEDIA_MP3_URL = "";
     public static String MEDIA_MP3_TITLE = "";
     public static String MEDIA_MP3_IMAGE = "";
+    public static int MEDIA_DURATION = 0;
+    public static int MEDIA_SEEK_TO_POSITION = 0;
     //public static boolean MEDIA_MP3_ISPLAY = true;
 
     public static boolean MEDIA_NOTIFICATION_ISPLAY = false;

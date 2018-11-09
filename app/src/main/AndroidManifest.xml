@@ -51,6 +51,11 @@
             android:screenOrientation="portrait"></activity>
 
         <activity
+            android:name=".activities.AudioForLowVersionActivity" android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:screenOrientation="portrait"></activity>
+
+
+        <activity
             android:name=".activities.DownloadListActivity"
             android:screenOrientation="portrait"></activity>
 

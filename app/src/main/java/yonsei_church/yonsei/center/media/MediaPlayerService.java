@@ -56,7 +56,7 @@ import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK;
 
 public class MediaPlayerService  extends Service implements MediaPlayer.OnPreparedListener {        // , AudioManager.OnAudioFocusChangeListener
     public static final String ACTION_PLAY = "action_play";
-    public static final String ACTION_SEEK_TO = "actoin_seek_to";
+    public static final String ACTION_SEEK_TO = "action_seek_to";
     public static final String ACTION_PAUSE = "action_pause";
     public static final String ACTION_REWIND = "action_rewind";
     public static final String ACTION_FAST_FORWARD = "action_fast_foward";
@@ -97,7 +97,6 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
         AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         audioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-
 
         player.start();
         AppConst.MEDIA_NOTIFICATION_ISPLAY = true;
@@ -244,7 +243,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
         handleIntent( intent );
         //return super.onStartCommand(intent, flags, startId);
-        return Service.START_NOT_STICKY;
+        return Service.START_STICKY;
     }
 
 
@@ -374,8 +373,8 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                                      super.onSeekTo(pos);
                                      Log.e( "MediaPlayerService", "onSeek " + mPosition);
                                      buildNotification( generateAction( R.drawable.exo_controls_pause, "Play", ACTION_PAUSE ) );
-                                    /* mMediaPlayer.seekTo(mPosition*1000);
-                                     mMediaPlayer.start();*/
+                                     mMediaPlayer.seekTo(AppConst.MEDIA_SEEK_TO_POSITION);
+                                     mMediaPlayer.start();
                                  }
 
                                  @Override
@@ -551,6 +550,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
             try {
                 if (null != mMediaPlayer && mMediaPlayer.isPlaying()) {
                     Log.d("AUDIOACTIVITY", "PREPARED0 CURRENT POSITION : " + mMediaPlayer.getCurrentPosition() + "___" + mAudioLink);
+                    AppConst.MEDIA_DURATION = mMediaPlayer.getDuration();
                     AppConst.MEDIA_CURRENT_POSITION = mMediaPlayer.getCurrentPosition();
                 } else {
                     //Log.d("AUDIOACTIVITY", "CURRENT POSITION : STOP");

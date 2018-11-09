@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -39,6 +40,7 @@ import com.gun0912.tedpermission.TedPermission;
 
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.TimerTask;
 
 import yonsei_church.yonsei.center.R;
 import yonsei_church.yonsei.center.app.AppConst;
@@ -74,7 +76,7 @@ public class WebViewActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         mWebView.resumeTimers();
         mWebView.onResume();
@@ -91,9 +93,9 @@ public class WebViewActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if(mWebView.canGoBack()){
+        if (mWebView.canGoBack()) {
             mWebView.goBack();
-        }else{
+        } else {
             if (doubleBackToExitPressedOnce) {
                 Intent intent = new Intent(WebViewActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -109,8 +111,8 @@ public class WebViewActivity extends AppCompatActivity {
 
                 @Override
                 public void run() {
-                    doubleBackToExitPressedOnce=false;
-               }
+                    doubleBackToExitPressedOnce = false;
+                }
             }, 2000);
 
         }
@@ -230,10 +232,10 @@ public class WebViewActivity extends AppCompatActivity {
         findViewById(R.id.btn_play).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
-                intent.setAction( MediaPlayerService.ACTION_PLAY );
-                intent.putExtra("streamLink","https://s3-ap-northeast-2.amazonaws.com/webaudio.ybstv.com/mp3/yn20181021-322.mp3");
-                intent.putExtra("position",0);
+                Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+                intent.setAction(MediaPlayerService.ACTION_PLAY);
+                intent.putExtra("streamLink", "https://s3-ap-northeast-2.amazonaws.com/webaudio.ybstv.com/mp3/yn20181021-322.mp3");
+                intent.putExtra("position", 0);
                 AppConst.MEDIA_CURRENT_POSITION = 0;
 
                 startService(intent);
@@ -277,22 +279,23 @@ public class WebViewActivity extends AppCompatActivity {
                 editor.commit();
             }
 
-            if ("http://app.yonsei.or.kr/".equals(url)) {if (doubleBackToExitPressedOnce) {
-                Intent intent = new Intent(WebViewActivity.this, MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                intent.putExtra("EXIT", true);
-                startActivity(intent);
-            } else {
+            if ("http://app.yonsei.or.kr/".equals(url)) {
+                if (doubleBackToExitPressedOnce) {
+                    Intent intent = new Intent(WebViewActivity.this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    intent.putExtra("EXIT", true);
+                    startActivity(intent);
+                } else {
 
-                WebViewActivity.this.doubleBackToExitPressedOnce = true;
-                Toast.makeText(WebViewActivity.this, "'뒤로' 버튼을 한번 더 누르시면 종료됩니다.", Toast.LENGTH_SHORT).show();
-            }
+                    WebViewActivity.this.doubleBackToExitPressedOnce = true;
+                    Toast.makeText(WebViewActivity.this, "'뒤로' 버튼을 한번 더 누르시면 종료됩니다.", Toast.LENGTH_SHORT).show();
+                }
 
                 new Handler().postDelayed(new Runnable() {
 
                     @Override
                     public void run() {
-                        doubleBackToExitPressedOnce=false;
+                        doubleBackToExitPressedOnce = false;
                     }
                 }, 2000);
 
@@ -302,23 +305,38 @@ public class WebViewActivity extends AppCompatActivity {
         //네트워크연결에러
 
         @Override
-        public void onReceivedError(WebView view, int errorCode,String description, String failingUrl) {
-            switch(errorCode) {
-                case ERROR_AUTHENTICATION: break;               // 서버에서 사용자 인증 실패
-                case ERROR_BAD_URL: break;                           // 잘못된 URL
-                case ERROR_CONNECT: break;                          // 서버로 연결 실패
-                case ERROR_FAILED_SSL_HANDSHAKE: break;    // SSL handshake 수행 실패
-                case ERROR_FILE: break;                                  // 일반 파일 오류
-                case ERROR_FILE_NOT_FOUND: break;               // 파일을 찾을 수 없습니다
-                case ERROR_HOST_LOOKUP: break;           // 서버 또는 프록시 호스트 이름 조회 실패
-                case ERROR_IO: break;                              // 서버에서 읽거나 서버로 쓰기 실패
-                case ERROR_PROXY_AUTHENTICATION: break;   // 프록시에서 사용자 인증 실패
-                case ERROR_REDIRECT_LOOP: break;               // 너무 많은 리디렉션
-                case ERROR_TIMEOUT: break;                          // 연결 시간 초과
-                case ERROR_TOO_MANY_REQUESTS: break;     // 페이지 로드중 너무 많은 요청 발생
-                case ERROR_UNKNOWN: break;                        // 일반 오류
-                case ERROR_UNSUPPORTED_AUTH_SCHEME: break; // 지원되지 않는 인증 체계
-                case ERROR_UNSUPPORTED_SCHEME: break;          // URI가 지원되지 않는 방식
+        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+            switch (errorCode) {
+                case ERROR_AUTHENTICATION:
+                    break;               // 서버에서 사용자 인증 실패
+                case ERROR_BAD_URL:
+                    break;                           // 잘못된 URL
+                case ERROR_CONNECT:
+                    break;                          // 서버로 연결 실패
+                case ERROR_FAILED_SSL_HANDSHAKE:
+                    break;    // SSL handshake 수행 실패
+                case ERROR_FILE:
+                    break;                                  // 일반 파일 오류
+                case ERROR_FILE_NOT_FOUND:
+                    break;               // 파일을 찾을 수 없습니다
+                case ERROR_HOST_LOOKUP:
+                    break;           // 서버 또는 프록시 호스트 이름 조회 실패
+                case ERROR_IO:
+                    break;                              // 서버에서 읽거나 서버로 쓰기 실패
+                case ERROR_PROXY_AUTHENTICATION:
+                    break;   // 프록시에서 사용자 인증 실패
+                case ERROR_REDIRECT_LOOP:
+                    break;               // 너무 많은 리디렉션
+                case ERROR_TIMEOUT:
+                    break;                          // 연결 시간 초과
+                case ERROR_TOO_MANY_REQUESTS:
+                    break;     // 페이지 로드중 너무 많은 요청 발생
+                case ERROR_UNKNOWN:
+                    break;                        // 일반 오류
+                case ERROR_UNSUPPORTED_AUTH_SCHEME:
+                    break; // 지원되지 않는 인증 체계
+                case ERROR_UNSUPPORTED_SCHEME:
+                    break;          // URI가 지원되지 않는 방식
             }
 
             super.onReceivedError(view, errorCode, description, failingUrl);
@@ -328,7 +346,7 @@ public class WebViewActivity extends AppCompatActivity {
         }
     }
 
-    void checkStoragePermissionForDonwload(){
+    void checkStoragePermissionForDonwload() {
         new TedPermission(mActivity)
                 .setPermissionListener(permissionlistener)
                 .setRationaleMessage("저장소 접근을 허용해주세요.")
@@ -340,9 +358,9 @@ public class WebViewActivity extends AppCompatActivity {
         @Override
         public void onPermissionGranted() {
             //download("https://player.vimeo.com/external/296317003.sd.mp4?s=906fbda76388c0e6974dc95d98ae7c1863be49bd&profile_id=164&download=1", "296317003.sd.mp4");
-            Intent intent = new Intent( getApplicationContext(), DownloadContentService.class );
-            intent.putExtra("url","https://www.radiantmediaplayer.com/media/bbb-360p.mp4");
-            intent.putExtra("title","동영상다운로드테스트.mp4");
+            Intent intent = new Intent(getApplicationContext(), DownloadContentService.class);
+            intent.putExtra("url", "https://www.radiantmediaplayer.com/media/bbb-360p.mp4");
+            intent.putExtra("title", "동영상다운로드테스트.mp4");
             startService(intent);
         }
 
@@ -358,7 +376,7 @@ public class WebViewActivity extends AppCompatActivity {
         public void send(final String arg) {
             new Handler().post(new Runnable() {
                 public void run() {
-                    Log.d("OSVERSION" , Build.VERSION.SDK_INT + "");
+                    Log.d("OSVERSION", Build.VERSION.SDK_INT + "");
                     Log.d("JAVASCRIPT", Util.urlDecode(arg));
                     String[] args = Util.urlDecode(arg).split("\\^");
                     String mediaUrl = args[0];
@@ -374,16 +392,53 @@ public class WebViewActivity extends AppCompatActivity {
                     AppConst.MEDIA_MP3_URL = mediaUrl;
                     AppConst.MEDIA_MP3_TITLE = mediaTitle;
                     AppConst.MEDIA_MP3_IMAGE = mediaImage;
+                    AppConst.MEDIA_DURATION = 0;
+                    AppConst.MEDIA_SEEK_TO_POSITION = 0;
                     //AppConst.MEDIA_MP3_ISPLAY = true;
 
                     try {
-                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
-                        stopService(intent);
+                        if (Build.VERSION.SDK_INT < 21) {
+                            // Do some stuff
+                            Intent intent = new Intent(WebViewActivity.this, AudioForLowVersionActivity.class);
+                            startActivity(intent);
+                        } else {
+                            Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+                            stopService(intent);
+
+                            intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+                            intent.setAction(MediaPlayerService.ACTION_PLAY);
+                            startService(intent);
+
+                            try {
+                                WaitingDialog.showWaitingDialog(mActivity);
+                                boolean isGetDuration = false;
+                                int thCnt = 0;
+                                while (!isGetDuration) {
+                                    if (AppConst.MEDIA_DURATION > 0 && thCnt < 10) {
+                                        Log.d("RUNRUN", "RUNRUN");
+                                        isGetDuration = true;
+                                        Intent audioIntent = new Intent(WebViewActivity.this, AudioActivity.class);
+                                        startActivity(audioIntent);
+                                        thCnt++;
+                                        break;
+                                    } else if (thCnt >= 10) {
+                                        isGetDuration = false;
+                                    }
+
+                                    Thread.sleep(1000);
+                                }
+                                WaitingDialog.cancelWaitingDialog();
+                            } catch (Exception ex) {
+                                WaitingDialog.cancelWaitingDialog();
+                            }
+
+                        }
+
                     } catch (Exception ex) {
 
                     }
-                    Intent intent = new Intent( WebViewActivity.this, AudioActivity.class );
-                    startActivity(intent);
+                    /*Intent intent = new Intent( WebViewActivity.this, AudioActivity.class );
+                    startActivity(intent);*/
 
                     /*if(Build.VERSION.SDK_INT < 21 ){
                         // Do some stuff
@@ -438,8 +493,6 @@ public class WebViewActivity extends AppCompatActivity {
         }
     }
 
-
-
     public class MediaControlBridge {
         @JavascriptInterface
         public void go() {
@@ -464,12 +517,12 @@ public class WebViewActivity extends AppCompatActivity {
             new Handler().post(new Runnable() {
                 public void run() {
                     try {
-                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                        Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
                         stopService(intent);
                     } catch (Exception ex) {
 
                     }
-                    Intent intent = new Intent( WebViewActivity.this, AudioActivity.class );
+                    Intent intent = new Intent(WebViewActivity.this, AudioActivity.class);
                     startActivity(intent);
 
 /*
@@ -494,7 +547,7 @@ public class WebViewActivity extends AppCompatActivity {
                     try {
                         NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
                         notificationManager.cancel(AppConst.NOTIFICATION_ID);
-                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                        Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
                         stopService(intent);
                     } catch (Exception ex) {
 
@@ -513,7 +566,7 @@ public class WebViewActivity extends AppCompatActivity {
                     try {
                         NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
                         notificationManager.cancel(AppConst.NOTIFICATION_ID);
-                        Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
+                        Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
                         stopService(intent);
 
                         Intent intent1 = new Intent(getApplicationContext(), MediaPlayerService.class);
@@ -543,12 +596,5 @@ public class WebViewActivity extends AppCompatActivity {
                 }
             });
         }
-
-
-
-
-
     }
-
-
 }
