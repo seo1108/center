@@ -1,7 +1,9 @@
 package yonsei_church.yonsei.center.activities;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.support.v4.content.ContextCompat;
@@ -11,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
@@ -26,6 +29,7 @@ public class FullscreenableChromeClient extends WebChromeClient {
 
     public FullscreenableChromeClient(Activity activity) {
         this.mActivity = activity;
+        Log.d("FULLSCREEN", "0");
         /*mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);*/
 
@@ -33,13 +37,8 @@ public class FullscreenableChromeClient extends WebChromeClient {
     }
 
     @Override
-    public void onCloseWindow(WebView window) {
-        Log.d("CLOSECLOSE", "CLOSE");
-    }
-
-    @Override
     public void onShowCustomView(View view, CustomViewCallback callback) {
-
+        Log.d("FULLSCREEN", Build.VERSION.SDK_INT + "");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             if (mCustomView != null) {
                 callback.onCustomViewHidden();
@@ -65,6 +64,7 @@ public class FullscreenableChromeClient extends WebChromeClient {
     @SuppressWarnings("deprecation")
     @Override
     public void onShowCustomView(View view, int requestedOrientation, WebChromeClient.CustomViewCallback callback) {
+        Log.d("FULLSCREEN", "1");
         this.onShowCustomView(view, callback);
     }
 
@@ -91,13 +91,25 @@ public class FullscreenableChromeClient extends WebChromeClient {
         if (enabled) {
             winParams.flags |= bits;
         } else {
+            Log.d("FULLSCREEN", Build.VERSION.SDK_INT + "");
             winParams.flags &= ~bits;
             if (mCustomView != null) {
+                /*if (Build.VERSION.SDK_INT >= 19) {
+                    win.getDecorView().setSystemUiVisibility(
+                            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                } else {
+                    if (Build.VERSION.SDK_INT > 10) {
+                        win.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE);
+                    }
+                }*/
                 mCustomView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             }
         }
         win.setAttributes(winParams);
     }
+
 
     private static class FullscreenHolder extends FrameLayout {
         public FullscreenHolder(Context ctx) {

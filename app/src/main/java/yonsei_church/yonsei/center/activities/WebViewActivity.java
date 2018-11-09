@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.NotificationManager;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,6 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -139,8 +141,13 @@ public class WebViewActivity extends AppCompatActivity {
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setSavePassword(false);
+        webSettings.setUseWideViewPort(true);
+        webSettings.setLoadWithOverviewMode(true);
+        webSettings.setAllowContentAccess(true);
+        mWebView.setLayerType(View.LAYER_TYPE_NONE, null);
+        //webSettings.setUserAgentString("Mozilla/5.0 (Linux; Android 4.4; Nexus 5 Build/_BuildID_) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36");
 
-        mWebView.setWebChromeClient(new WebChromeClient() {
+        /*mWebView.setWebChromeClient(new WebChromeClient() {
             //alert 처리
             @Override
             public boolean onJsAlert(WebView view, String url, String message, final JsResult result) {
@@ -192,8 +199,8 @@ public class WebViewActivity extends AppCompatActivity {
 
                 return true;
             }
-        });
-
+        });*/
+        //mWebView.setWebChromeClient(new WebChromeClient());
         mWebView.setWebChromeClient(new FullscreenableChromeClient(WebViewActivity.this));
         mWebView.addJavascriptInterface(new AndroidBridge(), "audio");
         mWebView.addJavascriptInterface(new MediaControlBridge(), "download");
@@ -368,7 +375,10 @@ public class WebViewActivity extends AppCompatActivity {
                     AppConst.MEDIA_MP3_IMAGE = mediaImage;
                     AppConst.MEDIA_MP3_ISPLAY = true;
 
-                    if(Build.VERSION.SDK_INT < 21 ){
+                    Intent intent = new Intent( WebViewActivity.this, AudioActivity.class );
+                    startActivity(intent);
+
+                    /*if(Build.VERSION.SDK_INT < 21 ){
                         // Do some stuff
                         Intent intent = new Intent( WebViewActivity.this, AudioActivity.class );
                         startActivity(intent);
@@ -386,8 +396,36 @@ public class WebViewActivity extends AppCompatActivity {
                         intent.setAction( MediaPlayerService.ACTION_PLAY );
 
                         startService(intent);
-                    }
+                    }*/
 
+                    /*int vlcRequestCode = 42;
+                    Intent vlcIntent = new Intent(Intent.ACTION_VIEW);
+                    //vlcIntent.setPackage("org.videolan.vlc");
+                    //vlcIntent.setPackage("yonsei_church.yonsei.center");
+                    vlcIntent.setDataAndTypeAndNormalize(Uri.parse(AppConst.MEDIA_MP3_URL), "audio/*");
+                    vlcIntent.putExtra("title", AppConst.MEDIA_MP3_TITLE);
+                    vlcIntent.putExtra("from_start", true);
+
+
+                    startActivityForResult(vlcIntent, vlcRequestCode);*/
+                    /*Intent intent = new Intent();
+                    intent.setAction(android.content.Intent.ACTION_VIEW);
+                    intent.setDataAndType(Uri.parse(AppConst.MEDIA_MP3_URL), "audio/*");
+                    intent.putExtra("title", AppConst.MEDIA_MP3_TITLE);
+                    startActivity(intent);*/
+
+                    /*try {
+                        Intent intent = new Intent();
+                        intent.setAction(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.putExtra(SearchManager.QUERY, Uri.parse(AppConst.MEDIA_MP3_URL));
+                        startActivity(intent);
+
+                    } catch (Exception ex){
+                        ex.printStackTrace();
+                        // Try other methods here
+
+                    }*/
                 }
             });
         }

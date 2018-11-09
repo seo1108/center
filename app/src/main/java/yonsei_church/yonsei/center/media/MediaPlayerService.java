@@ -1,5 +1,6 @@
 package yonsei_church.yonsei.center.media;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -118,7 +119,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         if (mMediaPlayer != null) mMediaPlayer.release();
 
         try {
-            wifiLock.release();
+            if (null != wifiLock) wifiLock.release();
             mTimer.cancel();
             mTimer = null;
         } catch (Exception ex) {
@@ -127,7 +128,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
     }
 
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @SuppressLint("NewApi")
     private void handleIntent(Intent intent ) {
         if( intent == null || intent.getAction() == null )
             return;
@@ -152,7 +153,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+
     private NotificationCompat.Action generateAction( int icon, String title, String intentAction ) {
         Intent intent = new Intent( getApplicationContext(), MediaPlayerService.class );
         intent.setAction( intentAction );
@@ -162,20 +163,14 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
 
 
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+
     private void buildNotification( NotificationCompat.Action action ) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), AppConst.NOTIFICATION_MP_CHANNEL_ID);
         NotificationChannelSupport notificationChannelSupport = new NotificationChannelSupport();
         notificationChannelSupport.createNotificationChannel(getApplicationContext(), AppConst.NOTIFICATION_MP_CHANNEL_ID);
 
         Intent intent = new Intent(getApplicationContext(), AudioActivity.class);
-        /*intent.putExtra("mediaUrl", AppConst.MEDIA_MP3_URL);
-        intent.putExtra("position", AppConst.MEDIA_CURRENT_POSITION);
-        intent.putExtra("title", mTitle);
-        intent.putExtra("image", mImage);*/
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        //intent.setAction(mMediaPlayer.getCurrentPosition() + "");
-        //intent.setAction(Long.toString(System.currentTimeMillis()));
 
         PendingIntent contentPendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -189,7 +184,6 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
                 .setWhen(System.currentTimeMillis())
                 .setOngoing(true)
                 .setColorized(true)
-                //.setColor(Color.parseColor("#f7da64"))
                 .setContentIntent(contentPendingIntent)
                 .setDeleteIntent(createOnDismissedIntent(getApplicationContext(), AppConst.NOTIFICATION_ID));
 
@@ -197,7 +191,6 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         builder.addAction(action);
         builder.addAction(generateAction(R.drawable.exo_icon_next, "Fast Foward", ACTION_FAST_FORWARD));
         builder.addAction(generateAction(android.R.drawable.ic_lock_power_off, "Next", ACTION_NEXT));
-        //int[] actionsViewIndexs = new int[]{1,2,3};
         int[] actionsViewIndexs = new int[]{0, 1, 2};
 
         builder.setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle().setShowActionsInCompactView(actionsViewIndexs));
@@ -216,7 +209,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
     }
 
     @Override
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         //mAudioLink = intent.getStringExtra("streamLink");
@@ -255,7 +248,8 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         return Service.START_NOT_STICKY;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+
+    @SuppressLint("NewApi")
     private void initMediaSessions() {
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
@@ -263,7 +257,7 @@ public class MediaPlayerService  extends Service implements MediaPlayer.OnPrepar
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
        wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
-                .createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
+                .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "mylock");
 
         wifiLock.acquire();
 

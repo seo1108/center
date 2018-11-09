@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.PowerManager;
@@ -105,6 +106,20 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
         fabExit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // 롤리팝 이후 버전일 경우
+                if (Build.VERSION.SDK_INT >= 21 ){
+                    Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+                    intent.setAction(MediaPlayerService.ACTION_PLAY);
+
+                    AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
+                    startService(intent);
+                }
+
+                AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                audioManager.abandonAudioFocus(focusChangeListener);
+
+                clearMediaPlayer();
+
                 finish();
             }
         });
@@ -126,6 +141,20 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
         txtClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // 롤리팝 이후 버전일 경우
+                if (Build.VERSION.SDK_INT >= 21 ){
+                    Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
+                    intent.setAction(MediaPlayerService.ACTION_PLAY);
+
+                    AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
+                    startService(intent);
+                }
+
+                AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                audioManager.abandonAudioFocus(focusChangeListener);
+
+                clearMediaPlayer();
+
                 finish();
             }
         });
@@ -138,7 +167,7 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
             this.mediaPlayer.prepare();
 
             wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
-                    .createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
+                    .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "mylock");
 
             wifiLock.acquire();
             //this.mediaPlayer.setOnPreparedListener(this);
@@ -167,52 +196,55 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromTouch) {
                 //seekBarHint.setVisibility(View.VISIBLE);
-                Log.d("PREPARED3", "PROGRESS : " + progress);
-                AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
+                try {
+                    Log.d("PREPARED3", "PROGRESS : " + progress);
+                    if (null != mediaPlayer) AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
 
-                int seconds = (int) (progress / 1000) % 60 ;
-                int minutes = (int) ((progress / (1000*60)) % 60);
-                int hours   = (int) ((progress / (1000*60*60)) % 24);
+                    int seconds = (int) (progress / 1000) % 60;
+                    int minutes = (int) ((progress / (1000 * 60)) % 60);
+                    int hours = (int) ((progress / (1000 * 60 * 60)) % 24);
 
-                String time = "";
-                if (hours > 0) {
-                    time += hours + ":";
-                }
-
-                if (minutes > 0) {
-                    if (hours > 0 && minutes < 10) {
-                        time += "0" + minutes + ":";
-                    } else {
-                        time += minutes + ":";
+                    String time = "";
+                    if (hours > 0) {
+                        time += hours + ":";
                     }
-                } else {
-                    time += "00:";
+
+                    if (minutes > 0) {
+                        if (hours > 0 && minutes < 10) {
+                            time += "0" + minutes + ":";
+                        } else {
+                            time += minutes + ":";
+                        }
+                    } else {
+                        time += "00:";
+                    }
+
+                    if (seconds < 10) {
+                        time += "0" + seconds;
+                    } else {
+                        time += seconds;
+                    }
+
+
+                    int x = (int) Math.ceil(progress / 1000f);
+
+                    if (x < 10)
+                        seekBarHint.setText("0:0" + x);
+                    else
+                        seekBarHint.setText("0:" + x);
+
+                    double percent = progress / (double) seekBar.getMax();
+                    int offset = seekBar.getThumbOffset();
+                    int seekWidth = seekBar.getWidth();
+                    int val = (int) Math.round(percent * (seekWidth - 2 * offset));
+                    int labelWidth = seekBarHint.getWidth();
+                    seekBarHint.setX(offset + seekBar.getX() + val
+                            - Math.round(percent * offset)
+                            - Math.round(percent * labelWidth / 2));
+
+                    seekBarHint.setText(time + " / " + mTotalDuration);
+                } catch (Exception ex) {
                 }
-
-                if (seconds < 10) {
-                    time += "0" + seconds;
-                } else {
-                    time += seconds;
-                }
-
-
-                int x = (int) Math.ceil(progress / 1000f);
-
-                if (x < 10)
-                    seekBarHint.setText("0:0" + x);
-                else
-                    seekBarHint.setText("0:" + x);
-
-                double percent = progress / (double) seekBar.getMax();
-                int offset = seekBar.getThumbOffset();
-                int seekWidth = seekBar.getWidth();
-                int val = (int) Math.round(percent * (seekWidth - 2 * offset));
-                int labelWidth = seekBarHint.getWidth();
-                seekBarHint.setX(offset + seekBar.getX() + val
-                        - Math.round(percent * offset)
-                        - Math.round(percent * labelWidth / 2));
-
-                seekBarHint.setText(time + " / " + mTotalDuration);
 
                 /*if (progress > 0 && mediaPlayer != null && !mediaPlayer.isPlaying()) {
                     clearMediaPlayer();
@@ -487,30 +519,34 @@ public class AudioActivity extends AppCompatActivity implements Runnable { //, M
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-       // if (!isExit) {
-        Log.d("PREPARED8", AppConst.MEDIA_CURRENT_POSITION + "____" +  this.mediaPlayer.getCurrentPosition());
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
         // 롤리팝 이후 버전일 경우
         if (Build.VERSION.SDK_INT >= 21 ){
             Intent intent = new Intent(getApplicationContext(), MediaPlayerService.class);
             intent.setAction(MediaPlayerService.ACTION_PLAY);
 
-            AppConst.MEDIA_CURRENT_POSITION = this.mediaPlayer.getCurrentPosition();
-            //AppConst.MEDIA_CUURECT_POSITION = 0;
+            AppConst.MEDIA_CURRENT_POSITION = mediaPlayer.getCurrentPosition();
             startService(intent);
         }
-
 
         AudioManager audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         audioManager.abandonAudioFocus(focusChangeListener);
 
-
-       // }
-
         clearMediaPlayer();
+
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+       // if (!isExit) {
+//        Log.d("PREPARED8", AppConst.MEDIA_CURRENT_POSITION + "____" +  this.mediaPlayer.getCurrentPosition());
+
+
     }
 
     private void clearMediaPlayer() {
